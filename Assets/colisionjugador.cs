@@ -1,23 +1,25 @@
 using JetBrains.Annotations;
 using UnityEngine;
 
-public class colisionjugador : MonoBehaviour
+public class ColisionJugador : MonoBehaviour
 {
     private void Start()
     {
-        gameManager.instance.onPlay.AddListener(Revivir);
+        GameManager.instance.onPlay.AddListener(Revivir);
     }
+    
     private void Revivir()
     {
         gameObject.SetActive(true);
     }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
-
+        // Chocar con un obstaculo activa el game-over.
         if (collision.transform.CompareTag("obstacle"))
         {
             gameObject.SetActive(false);
-            gameManager.instance.gameover();
+            GameManager.instance.LaunchGameover();
         }
     }
 }

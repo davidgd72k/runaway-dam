@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class movimientojugador : MonoBehaviour
+public class MovimientoJugador : MonoBehaviour
 {
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private Transform gfx;
@@ -20,17 +20,61 @@ public class movimientojugador : MonoBehaviour
 
     private void Update()
     {
-        #region jump
+        // Obtenemos contacto con el suelo.
         isGrounded = Physics2D.OverlapCircle(feetPos.position, groundDistance, groundLayer);
 
+        Jump();
+        HoldJump();
+        ReleaseJump();
+        CalculateJumpPhysics();
+        Crouch();
+    }
+
+    private void Jump()
+    {
+        // Pulsando la tecla de saltar cuando estás en el suelo.
         if (isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
             isJumping = true;
             jumpTimer = jumpTime;
-
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         }
+    }
 
+    private void Crouch()
+    {
+        if (isGrounded && Input.GetKey(KeyCode.LeftShift))
+        {
+            gfx.localScale = new Vector3(gfx.localScale.x, crouchHeight, gfx.localScale.z);
+        }
+
+        if (isJumping && Input.GetKey(KeyCode.LeftShift))
+        {
+            gfx.localScale = new Vector3(gfx.localScale.x, 1f, gfx.localScale.z);
+        }
+
+        if (Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            gfx.localScale = new Vector3(gfx.localScale.x, 1f, gfx.localScale.z);
+        }
+    }
+
+    private void CalculateJumpPhysics()
+    {
+        if (rb.linearVelocity.y < 0)
+        {
+            rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
+        }
+        else if (rb.linearVelocity.y > 0 && !Input.GetKey(KeyCode.Space))
+        {
+            rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
+        }
+    }
+
+    private void HoldJump()
+    {
+        // Manteniendo aún la tecla de saltar cuando estás en el aire
+        // (intuyo que para lograr ese tipo de salto a lo Super Mario Bros).
         if (Input.GetKey(KeyCode.Space) && isJumping)
         {
             if (jumpTimer > 0)
@@ -47,7 +91,12 @@ public class movimientojugador : MonoBehaviour
                 isJumping = false;
             }
         }
+    }
 
+    private void ReleaseJump()
+    {
+        // Sueltas la tecla de salto en el aire, lo que le indicas al 
+        // juego que quieres empezar a bajar ya.
         if (Input.GetKeyUp(KeyCode.Space))
         {
             isJumping = false;
@@ -60,30 +109,5 @@ public class movimientojugador : MonoBehaviour
                 );
             }
         }
-
-        if (rb.linearVelocity.y < 0)
-        {
-            rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
-        }
-        else if (rb.linearVelocity.y > 0 && !Input.GetKey(KeyCode.Space))
-        {
-            rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
-        }
-        #endregion jump
-
-        #region crouch
-        if(isGrounded && Input.GetKey(KeyCode.LeftShift))
-        {
-            gfx.localScale = new Vector3(gfx.localScale.x, crouchHeight, gfx.localScale.z);
-        }
-        if (isJumping && Input.GetKey(KeyCode.LeftShift))
-        {
-            gfx.localScale = new Vector3(gfx.localScale.x, 1f, gfx.localScale.z);
-        }
-        if(Input.GetKeyUp(KeyCode.LeftShift))
-        {
-            gfx.localScale = new Vector3(gfx.localScale.x, 1f, gfx.localScale.z);
-        }
-        #endregion crouch
     }
 }

@@ -1,11 +1,24 @@
 using UnityEngine;
 
-public class spawner : MonoBehaviour
+public class ObstacleSpawner : MonoBehaviour
 {
+    // TODO: ¿Hay alguna forma de no acumular en memoria todos los obstaculos que surgen?
+    /// <summary>
+    /// Prefabs de los obstaculos a aparecer.
+    /// </summary>
     [SerializeField] private GameObject[] obstaclePrefab;
+    /// <summary>
+    /// Contiene todos los obstaculos que surgen en el juego.
+    /// </summary>
     [SerializeField] private Transform obstacleParent;
 
+    /// <summary>
+    /// Ratio de aparición.
+    /// </summary>
     public float spawnRate = 2f;
+    /// <summary>
+    /// Velocidad del obstaculo.
+    /// </summary>
     public float obstacleSpeed = 3f;
 
     [Range(0, 2)] public float dificultadspwn = 1f;
@@ -21,15 +34,15 @@ public class spawner : MonoBehaviour
 
     private void Start()
     {
-        gameManager.instance.onGameOver.AddListener(ClearObstacle);
-        gameManager.instance.onPlay.AddListener(ResetValues);
+        GameManager.instance.onGameOver.AddListener(ClearObstacle);
+        GameManager.instance.onPlay.AddListener(ResetValues);
 
         ResetValues();
     }
 
     private void Update()
     {
-        if (!gameManager.instance.isPlaying)
+        if (!GameManager.instance.isPlaying)
             return;
 
         tiempoVivo += Time.deltaTime;

@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.Events;
-public class gameManager : MonoBehaviour
+public class GameManager : MonoBehaviour
 {
     #region singleton
-    public static gameManager instance;
+    public static GameManager instance;
 
     private void Awake()
     {
@@ -27,23 +27,28 @@ public class gameManager : MonoBehaviour
     {
         if (isPlaying)
         {
+            // Cada segundo que pasa es un punto, entendido.
             score += Time.deltaTime;
         }
 
     }
-    public UnityEvent onPlay =new UnityEvent();
-    public void startgame()
+
+    public UnityEvent onPlay = new UnityEvent();
+
+    public void StartGame()
     {
         onPlay.Invoke();
         isPlaying = true;
     }
-    public void gameover()
+
+    public void LaunchGameover()
     {
         onGameOver.Invoke();
         score = 0;
         isPlaying = false;
     }
-    public string scorebonito()
+
+    public string RoundScoreToInt()
     {
         return Mathf.RoundToInt(score).ToString();
     }

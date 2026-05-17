@@ -1,8 +1,9 @@
+using NUnit.Framework.Interfaces;
 using UnityEngine;
 using UnityEngine.Events;
 public class GameManager : MonoBehaviour
 {
-    #region singleton
+    #region GameManager singleton.
     public static GameManager instance;
 
     private void Awake()
@@ -21,7 +22,25 @@ public class GameManager : MonoBehaviour
 
     public float score = 0f;
     public bool isPlaying = false;
+    public Data data;
+
     public UnityEvent onGameOver = new UnityEvent();
+
+    private void Start()
+    {
+        // Cargamos el record guardado en disco.
+        string loadedData = SaveSystem.Load("save");
+
+        if (loadedData != null)
+        {
+            data = JsonUtility.FromJson<Data>(loadedData);
+        }
+        else
+        {
+            // ¿No hay record guardado?; pues se crea uno nuevo.
+            data = new Data();
+        }
+    }
 
     public void Update()
     {
@@ -38,19 +57,23 @@ public class GameManager : MonoBehaviour
     public void StartGame()
     {
         onPlay.Invoke();
+        score = 0;
         isPlaying = true;
     }
 
     public void LaunchGameover()
     {
-        onGameOver.Invoke();
-        score = 0;
+        // ¡Lograste hacer un nuevo record!
+        if (data.highScore < score)
+        {
+            data.highScore = score;
+
+            // Guardamos record en el disco.
+            string saveData = JsonUtility.ToJson(data);
+            SaveSystem.Save("save", saveData);
+        }
         isPlaying = false;
-    }
 
-    public string RoundScoreToInt()
-    {
-        return Mathf.RoundToInt(score).ToString();
+        onGameOver.Invoke();
     }
-
 }

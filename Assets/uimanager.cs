@@ -15,6 +15,8 @@ public class UIManager : MonoBehaviour
     /// Interfaz del menú de gameover.
     /// </summary>
     [SerializeField] private GameObject gameOverUI;
+    [SerializeField] TextMeshProUGUI gameOverScoreUI;
+    [SerializeField] TextMeshProUGUI gameOverHighscoreUI;
 
     private GameManager gm;
 
@@ -28,7 +30,7 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
-        scoreText.text = gm?.RoundScoreToInt() ?? "0";
+        scoreText.text = ScoreUtils.RoundScoreToInt(gm.score) ?? "0";
     }
 
     public void SetScore(string score) => scoreText.text = score;
@@ -36,6 +38,8 @@ public class UIManager : MonoBehaviour
     private void UIGameOver()
     {
         gameOverUI.SetActive(true);
+        gameOverScoreUI.text = "Puntos: " + ScoreUtils.RoundScoreToInt(gm.score);
+        gameOverHighscoreUI.text = "Record: " + ScoreUtils.RoundScoreToInt(gm.data.highScore);
     }
 
     public void playButtonHandler()

@@ -30,6 +30,7 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
+        // Mostramos en pantalla los puntos conseguidos en formato entero.
         scoreText.text = ScoreUtils.RoundScoreToInt(gm.score) ?? "0";
     }
 

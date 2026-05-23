@@ -1,4 +1,6 @@
+using System.IO.IsolatedStorage;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class ObstacleSpawner : MonoBehaviour
 {
@@ -25,12 +27,14 @@ public class ObstacleSpawner : MonoBehaviour
     [Range(0, 2)] public float dificultadvelo = 0.5f;
 
     public float minSpawnRate = 0.3f;
+    public float obstacleDeletingOffser = 10.0f;
 
     private float currentSpawnRate;
     private float currentObstacleSpeed;
 
     private float spawnTimer;
     private float tiempoVivo = 1f;
+
 
     private void Start()
     {
@@ -50,9 +54,11 @@ public class ObstacleSpawner : MonoBehaviour
         CalcularDificultad();
 
         SpawnLoop();
-
+        CheckObstacleCameraVisibility();
         ActualizarVelocidadObstaculos();
     }
+
+   
 
     private void SpawnLoop()
     {
@@ -121,5 +127,57 @@ public class ObstacleSpawner : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+    }
+
+    private void CheckObstacleCameraVisibility()
+    {
+        for (int i = 0; i < obstacleParent.childCount; i++)
+        {
+            Transform obj = obstacleParent.GetChild(i);
+            Rect camRect = GetCameraVisibleRect();
+            
+            if (obj.position.x < (camRect.x - obstacleDeletingOffser))
+            {
+                print("BORRAME");
+                Destroy(obj.gameObject);
+                print("Borrado");
+            }
+
+        }
+    }
+
+    private Vector3 DebugViewportRect(Rect viewport)
+    {
+        Debug.Log($"Viewport X: {viewport.x}, Y: {viewport.y}");
+        Debug.Log($"Viewport Width: {viewport.width}, Height: {viewport.height}");
+
+        
+        return Vector3.zero;
+    }
+
+    /// <summary>
+    /// Devuelve el rectángulo visible por la cámara 2D en base a las coordenadas del mundo.
+    /// </summary>
+    /// <returns>
+    /// Rectangulo del area visible de la cámara 2D.
+    /// </returns>
+    public Rect GetCameraVisibleRect()
+    {
+        // Calculo la altura visible de la cámara 2D (2 * cam.orthographicSize).
+        Camera cam = Camera.main;
+        // En vista ortografica, la cámara devuelve la mitad de su tamaño.
+        float height = 2f * cam.orthographicSize;
+
+        // Calculo el ancho visible de la cámara 2D (altura * su Aspect Ratio).
+        float width = height * cam.aspect;
+
+        // Obtengo la posición 3D de la cámara.
+        Vector3 cameraPos = cam.transform.position;
+
+        // Calculo el punto de origen (esquina superior-izquierda) de la zona visible de la cámara.
+        float left = cameraPos.x - width / 2f;
+        float top = cameraPos.y - height / 2f;
+
+        return new Rect(left, top, width, height);
     }
 }

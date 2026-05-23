@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8220445839967251600}
   - component: {fileID: 4016867477160602685}
+  - component: {fileID: 1851191016398937610}
   m_Layer: 8
   m_Name: spike
   m_TagString: obstacle
@@ -60,6 +61,18 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 6
+--- !u!114 &1851191016398937610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2266520410860354505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b74121d7da8c6c8448ad5aa0ef2e456a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObstacleBehavior
 --- !u!1 &8693144725725697017
 GameObject:
   m_ObjectHideFlags: 0

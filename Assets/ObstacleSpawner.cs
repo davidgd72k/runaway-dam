@@ -2,23 +2,16 @@ using UnityEngine;
 
 public class ObstacleSpawner : MonoBehaviour
 {
-    // TODO: ¿Hay alguna forma de no acumular en memoria todos los obstaculos que surgen?
-    /// <summary>
-    /// Prefabs de los obstaculos a aparecer.
-    /// </summary>
+    // Prefabs de obstáculos que pueden aparecer
     [SerializeField] private GameObject[] obstaclePrefab;
-    /// <summary>
-    /// Contiene todos los obstaculos que surgen en el juego.
-    /// </summary>
+
+    // Objeto padre donde se guardan los obstáculos en la jerarquía
     [SerializeField] private Transform obstacleParent;
 
-    /// <summary>
-    /// Ratio de aparición.
-    /// </summary>
+    // Tiempo entre spawns
     public float spawnRate = 2f;
-    /// <summary>
-    /// Velocidad del obstaculo.
-    /// </summary>
+
+    // Velocidad base de los obstáculos
     public float obstacleSpeed = 3f;
 
     [Range(0, 2)] public float dificultadspwn = 1f;
@@ -34,6 +27,7 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void Start()
     {
+        // Eventos del GameManager
         GameManager.instance.onGameOver.AddListener(ClearObstacle);
         GameManager.instance.onPlay.AddListener(ResetValues);
 
@@ -42,15 +36,14 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void Update()
     {
+        // Solo funciona si el juego está en marcha
         if (!GameManager.instance.isPlaying)
             return;
 
         tiempoVivo += Time.deltaTime;
 
         CalcularDificultad();
-
         SpawnLoop();
-
         ActualizarVelocidadObstaculos();
     }
 
@@ -67,21 +60,25 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void Spawn()
     {
+        // Selecciona un prefab aleatorio
         GameObject obstacleToSpawn =
             obstaclePrefab[Random.Range(0, obstaclePrefab.Length)];
 
+        // Instancia el obstáculo en la escena
         GameObject newObstacle =
             Instantiate(obstacleToSpawn, transform.position, Quaternion.identity);
 
+        // Lo asigna al padre
         newObstacle.transform.SetParent(obstacleParent);
 
+        // Le da velocidad inicial
         Rigidbody2D rb = newObstacle.GetComponent<Rigidbody2D>();
-
         rb.linearVelocity = Vector2.left * currentObstacleSpeed;
     }
 
     private void ActualizarVelocidadObstaculos()
     {
+        // Recorre todos los obstáculos activos
         foreach (Transform child in obstacleParent)
         {
             Rigidbody2D rb = child.GetComponent<Rigidbody2D>();
@@ -95,6 +92,7 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void CalcularDificultad()
     {
+        // Aumenta la dificultad con el tiempo
         currentSpawnRate =
             spawnRate / Mathf.Pow(tiempoVivo, (float)(1.5 * dificultadspwn));
 
@@ -107,16 +105,16 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void ResetValues()
     {
+        // Reinicia valores al empezar partida
         tiempoVivo = 1f;
-
         currentSpawnRate = spawnRate;
         currentObstacleSpeed = obstacleSpeed;
-
         spawnTimer = 0f;
     }
 
     private void ClearObstacle()
     {
+        // Borra todos los obstáculos al terminar la partida
         foreach (Transform child in obstacleParent)
         {
             Destroy(child.gameObject);

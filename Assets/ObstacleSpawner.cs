@@ -1,17 +1,12 @@
 using UnityEngine;
+using static obstacleName;
 
 public class ObstacleSpawner : MonoBehaviour
 {
-    // Prefabs de obst·culos que pueden aparecer
     [SerializeField] private GameObject[] obstaclePrefab;
-
-    // Objeto padre donde se guardan los obst·culos en la jerarquÌa
     [SerializeField] private Transform obstacleParent;
 
-    // Tiempo entre spawns
     public float spawnRate = 2f;
-
-    // Velocidad base de los obst·culos
     public float obstacleSpeed = 3f;
 
     [Range(0, 2)] public float dificultadspwn = 1f;
@@ -22,12 +17,13 @@ public class ObstacleSpawner : MonoBehaviour
     private float currentSpawnRate;
     private float currentObstacleSpeed;
 
+    [SerializeField] private float proyectilSpeedMultiplier = 1.3f;
+
     private float spawnTimer;
     private float tiempoVivo = 1f;
 
     private void Start()
     {
-        // Eventos del GameManager
         GameManager.instance.onGameOver.AddListener(ClearObstacle);
         GameManager.instance.onPlay.AddListener(ResetValues);
 
@@ -36,7 +32,6 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void Update()
     {
-        // Solo funciona si el juego est· en marcha
         if (!GameManager.instance.isPlaying)
             return;
 
@@ -60,41 +55,116 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void Spawn()
     {
-        // Selecciona un prefab aleatorio
+
         GameObject obstacleToSpawn =
             obstaclePrefab[Random.Range(0, obstaclePrefab.Length)];
 
-        // Instancia el obst·culo en la escena
-        GameObject newObstacle =
-            Instantiate(obstacleToSpawn, transform.position, Quaternion.identity);
+        ObstacleData prefabData =
+            obstacleToSpawn.GetComponent<ObstacleData>();
 
-        // Lo asigna al padre
+        if (prefabData == null)
+            return;
+
+        Vector3 spawnPos = transform.position;
+
+        // altura aleatoria seg√∫n tipo
+        switch (prefabData.obstacleType)
+        {
+            case ObstacleType.Proyectil:
+                spawnPos.y += Random.Range(-2f, 2f);
+                break;
+
+            case ObstacleType.Pelota:
+                spawnPos.y += Random.Range(1f, 4f); // empieza m√°s arriba
+                break;
+        }
+
+        GameObject newObstacle =
+            Instantiate(obstacleToSpawn, spawnPos, Quaternion.identity);
+
         newObstacle.transform.SetParent(obstacleParent);
 
-        // Le da velocidad inicial
         Rigidbody2D rb = newObstacle.GetComponent<Rigidbody2D>();
-        rb.linearVelocity = Vector2.left * currentObstacleSpeed;
+        ObstacleData data = newObstacle.GetComponent<ObstacleData>();
+
+        if (rb == null || data == null)
+            return;
+
+        switch (data.obstacleType)
+        {
+            case ObstacleType.Proyectil:
+
+                rb.gravityScale = 0f;
+                rb.linearVelocity =
+                    Vector2.left *
+                    (currentObstacleSpeed * proyectilSpeedMultiplier);
+
+                break;
+
+            case ObstacleType.Pelota:
+
+                // CLAVE: f√≠sica completa
+                rb.gravityScale = 1f;
+                rb.linearVelocity =
+                    Vector2.left * currentObstacleSpeed;
+
+                break;
+
+            case ObstacleType.Spike:
+            case ObstacleType.SpikeRow:
+
+                rb.gravityScale = 0f;
+                rb.linearVelocity =
+                    Vector2.left * currentObstacleSpeed;
+
+                break;
+        }
+        Debug.Log("SPAWN: " + data.obstacleType);
     }
 
     private void ActualizarVelocidadObstaculos()
     {
-        // Recorre todos los obst·culos activos
         foreach (Transform child in obstacleParent)
         {
             Rigidbody2D rb = child.GetComponent<Rigidbody2D>();
+            ObstacleData data = child.GetComponent<ObstacleData>();
 
-            if (rb != null)
+            if (rb == null || data == null)
+                continue;
+
+            switch (data.obstacleType)
             {
-                rb.linearVelocity = Vector2.left * currentObstacleSpeed;
+                case ObstacleType.Proyectil:
+
+                    rb.linearVelocity =
+                        Vector2.left *
+                        (currentObstacleSpeed * proyectilSpeedMultiplier);
+
+                    break;
+
+                case ObstacleType.Pelota:
+
+                    // SOLO mantener velocidad horizontal
+                    rb.linearVelocity =
+                        new Vector2(-currentObstacleSpeed, rb.linearVelocity.y);
+
+                    break;
+
+                case ObstacleType.Spike:
+                case ObstacleType.SpikeRow:
+
+                    rb.linearVelocity =
+                        Vector2.left * currentObstacleSpeed;
+
+                    break;
             }
         }
     }
 
     private void CalcularDificultad()
     {
-        // Aumenta la dificultad con el tiempo
         currentSpawnRate =
-            spawnRate / Mathf.Pow(tiempoVivo, (float)(1.5 * dificultadspwn));
+            spawnRate / Mathf.Pow(tiempoVivo, 1.5f * dificultadspwn);
 
         currentSpawnRate =
             Mathf.Clamp(currentSpawnRate, minSpawnRate, spawnRate);
@@ -105,7 +175,6 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void ResetValues()
     {
-        // Reinicia valores al empezar partida
         tiempoVivo = 1f;
         currentSpawnRate = spawnRate;
         currentObstacleSpeed = obstacleSpeed;
@@ -114,7 +183,6 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void ClearObstacle()
     {
-        // Borra todos los obst·culos al terminar la partida
         foreach (Transform child in obstacleParent)
         {
             Destroy(child.gameObject);

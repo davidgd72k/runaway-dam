@@ -1,24 +1,12 @@
 using UnityEngine;
+using static obstacleName;
 
 public class ObstacleSpawner : MonoBehaviour
 {
-    // TODO: øHay alguna forma de no acumular en memoria todos los obstaculos que surgen?
-    /// <summary>
-    /// Prefabs de los obstaculos a aparecer.
-    /// </summary>
     [SerializeField] private GameObject[] obstaclePrefab;
-    /// <summary>
-    /// Contiene todos los obstaculos que surgen en el juego.
-    /// </summary>
     [SerializeField] private Transform obstacleParent;
 
-    /// <summary>
-    /// Ratio de apariciÛn.
-    /// </summary>
     public float spawnRate = 2f;
-    /// <summary>
-    /// Velocidad del obstaculo.
-    /// </summary>
     public float obstacleSpeed = 3f;
 
     [Range(0, 2)] public float dificultadspwn = 1f;
@@ -28,6 +16,8 @@ public class ObstacleSpawner : MonoBehaviour
 
     private float currentSpawnRate;
     private float currentObstacleSpeed;
+
+    [SerializeField] private float proyectilSpeedMultiplier = 1.3f;
 
     private float spawnTimer;
     private float tiempoVivo = 1f;
@@ -48,9 +38,7 @@ public class ObstacleSpawner : MonoBehaviour
         tiempoVivo += Time.deltaTime;
 
         CalcularDificultad();
-
         SpawnLoop();
-
         ActualizarVelocidadObstaculos();
     }
 
@@ -67,17 +55,71 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void Spawn()
     {
+
         GameObject obstacleToSpawn =
             obstaclePrefab[Random.Range(0, obstaclePrefab.Length)];
 
+        ObstacleData prefabData =
+            obstacleToSpawn.GetComponent<ObstacleData>();
+
+        if (prefabData == null)
+            return;
+
+        Vector3 spawnPos = transform.position;
+
+        // altura aleatoria seg√∫n tipo
+        switch (prefabData.obstacleType)
+        {
+            case ObstacleType.Proyectil:
+                spawnPos.y += Random.Range(-2f, 2f);
+                break;
+
+            case ObstacleType.Pelota:
+                spawnPos.y += Random.Range(1f, 4f); // empieza m√°s arriba
+                break;
+        }
+
         GameObject newObstacle =
-            Instantiate(obstacleToSpawn, transform.position, Quaternion.identity);
+            Instantiate(obstacleToSpawn, spawnPos, Quaternion.identity);
 
         newObstacle.transform.SetParent(obstacleParent);
 
         Rigidbody2D rb = newObstacle.GetComponent<Rigidbody2D>();
+        ObstacleData data = newObstacle.GetComponent<ObstacleData>();
 
-        rb.linearVelocity = Vector2.left * currentObstacleSpeed;
+        if (rb == null || data == null)
+            return;
+
+        switch (data.obstacleType)
+        {
+            case ObstacleType.Proyectil:
+
+                rb.gravityScale = 0f;
+                rb.linearVelocity =
+                    Vector2.left *
+                    (currentObstacleSpeed * proyectilSpeedMultiplier);
+
+                break;
+
+            case ObstacleType.Pelota:
+
+                // CLAVE: f√≠sica completa
+                rb.gravityScale = 1f;
+                rb.linearVelocity =
+                    Vector2.left * currentObstacleSpeed;
+
+                break;
+
+            case ObstacleType.Spike:
+            case ObstacleType.SpikeRow:
+
+                rb.gravityScale = 0f;
+                rb.linearVelocity =
+                    Vector2.left * currentObstacleSpeed;
+
+                break;
+        }
+        Debug.Log("SPAWN: " + data.obstacleType);
     }
 
     private void ActualizarVelocidadObstaculos()
@@ -85,10 +127,36 @@ public class ObstacleSpawner : MonoBehaviour
         foreach (Transform child in obstacleParent)
         {
             Rigidbody2D rb = child.GetComponent<Rigidbody2D>();
+            ObstacleData data = child.GetComponent<ObstacleData>();
 
-            if (rb != null)
+            if (rb == null || data == null)
+                continue;
+
+            switch (data.obstacleType)
             {
-                rb.linearVelocity = Vector2.left * currentObstacleSpeed;
+                case ObstacleType.Proyectil:
+
+                    rb.linearVelocity =
+                        Vector2.left *
+                        (currentObstacleSpeed * proyectilSpeedMultiplier);
+
+                    break;
+
+                case ObstacleType.Pelota:
+
+                    // SOLO mantener velocidad horizontal
+                    rb.linearVelocity =
+                        new Vector2(-currentObstacleSpeed, rb.linearVelocity.y);
+
+                    break;
+
+                case ObstacleType.Spike:
+                case ObstacleType.SpikeRow:
+
+                    rb.linearVelocity =
+                        Vector2.left * currentObstacleSpeed;
+
+                    break;
             }
         }
     }
@@ -96,7 +164,7 @@ public class ObstacleSpawner : MonoBehaviour
     private void CalcularDificultad()
     {
         currentSpawnRate =
-            spawnRate / Mathf.Pow(tiempoVivo, (float)(1.5 * dificultadspwn));
+            spawnRate / Mathf.Pow(tiempoVivo, 1.5f * dificultadspwn);
 
         currentSpawnRate =
             Mathf.Clamp(currentSpawnRate, minSpawnRate, spawnRate);
@@ -108,10 +176,8 @@ public class ObstacleSpawner : MonoBehaviour
     private void ResetValues()
     {
         tiempoVivo = 1f;
-
         currentSpawnRate = spawnRate;
         currentObstacleSpeed = obstacleSpeed;
-
         spawnTimer = 0f;
     }
 

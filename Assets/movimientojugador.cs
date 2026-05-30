@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class MovimientoJugador : MonoBehaviour
 {
+    private Animator animator; //Para campturar el componente Animator del Jugador
     // Referencia al Rigidbody del jugador
     [SerializeField] private Rigidbody2D rb;
 
@@ -36,8 +37,15 @@ public class MovimientoJugador : MonoBehaviour
     [SerializeField] private float crouchHeight = 0.5f;
 
     private bool isGrounded;
+    private bool isCrouching;
     private bool isJumping;
     private float jumpTimer;
+
+    void Start()
+    {
+        animator = GetComponent<Animator>();
+
+    }
 
     private void Update()
     {
@@ -50,6 +58,26 @@ public class MovimientoJugador : MonoBehaviour
         ReleaseJump();
         CalculateJumpPhysics();
         Crouch();
+
+        // Si el personaje no está en el suelo, reproducir animación de salto
+        if (!isGrounded)
+        {
+            animator.SetBool("isjumping", true);
+            // Asegurarse de que la animación de andar no se reproduzca en el aire
+            }
+        else
+        {
+            animator.SetBool("isjumping", false);
+        }
+
+        if(isCrouching)
+        {
+            animator.SetBool("iscrouching", true); //Si se está moviendo, reproduzco la animación
+        }
+        else
+        {
+            animator.SetBool("iscrouching", false); //Si no, la paro
+        }
     }
 
     private void Jump()
@@ -70,18 +98,23 @@ public class MovimientoJugador : MonoBehaviour
         if (isGrounded && Input.GetKey(KeyCode.LeftShift))
         {
             gfx.localScale = new Vector3(gfx.localScale.x, crouchHeight, gfx.localScale.z);
+            isCrouching = true;
         }
 
         // Si está en el aire, vuelve al tamaño normal
         if (isJumping && Input.GetKey(KeyCode.LeftShift))
         {
             gfx.localScale = new Vector3(gfx.localScale.x, 1f, gfx.localScale.z);
+            isCrouching = false;
+
         }
 
         // Al soltar la tecla, vuelve al tamaño normal
         if (Input.GetKeyUp(KeyCode.LeftShift))
         {
             gfx.localScale = new Vector3(gfx.localScale.x, 1f, gfx.localScale.z);
+            isCrouching = false;
+
         }
     }
 
@@ -112,6 +145,7 @@ public class MovimientoJugador : MonoBehaviour
         {
             if (jumpTimer > 0)
             {
+                isJumping = true;
                 rb.linearVelocity = new Vector2(
                     rb.linearVelocity.x,
                     rb.linearVelocity.y + jumpForceHold * Time.deltaTime

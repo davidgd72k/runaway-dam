@@ -2,16 +2,37 @@ using UnityEngine;
 
 public class MovimientoJugador : MonoBehaviour
 {
+    // Referencia al Rigidbody del jugador
     [SerializeField] private Rigidbody2D rb;
+
+    // Parte visual del jugador (para escalar al agacharse)
     [SerializeField] private Transform gfx;
+
+    // Fuerza del salto inicial
     [SerializeField] private float jumpForce = 10f;
+
+    // Capa del suelo para detectar si estï¿½ tocando el suelo
     [SerializeField] private LayerMask groundLayer;
+
+    // Punto de comprobaciï¿½n del suelo (pies)
     [SerializeField] private Transform feetPos;
+
+    // Distancia para detectar el suelo
     [SerializeField] private float groundDistance = 0.25f;
+
+    // Tiempo mï¿½ximo para mantener el salto
     [SerializeField] private float jumpTime = 0.2f;
+
+    // Fuerza adicional mientras se mantiene el salto
     [SerializeField] private float jumpForceHold = 20f;
+
+    // Multiplicador de caï¿½da mï¿½s rï¿½pida
     [SerializeField] private float fallMultiplier = 2.5f;
+
+    // Multiplicador para salto corto si sueltas el botï¿½n
     [SerializeField] private float lowJumpMultiplier = 2f;
+
+    // Altura cuando el personaje se agacha
     [SerializeField] private float crouchHeight = 0.5f;
 
     private bool isGrounded;
@@ -20,9 +41,10 @@ public class MovimientoJugador : MonoBehaviour
 
     private void Update()
     {
-        // Obtenemos la hitbox que permite que el personaje no traspasé el suelo.
+        // Comprueba si el jugador estï¿½ tocando el suelo
         isGrounded = Physics2D.OverlapCircle(feetPos.position, groundDistance, groundLayer);
 
+        // Ejecuta toda la lï¿½gica de movimiento
         Jump();
         HoldJump();
         ReleaseJump();
@@ -35,11 +57,12 @@ public class MovimientoJugador : MonoBehaviour
     /// </summary>
     private void Jump()
     {
-        // El personaje solo puede saltar cuando está tocando el suelo.
+        // Salto inicial si estï¿½ en el suelo
         if (isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
             isJumping = true;
             jumpTimer = jumpTime;
+
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         }
     }
@@ -49,20 +72,20 @@ public class MovimientoJugador : MonoBehaviour
     /// </summary>
     private void Crouch()
     {
-        // Solo puedes agacharte cuando está en el suelo usando la tecla SHIFT.
+        // Solo puedes agacharte cuando estï¿½ en el suelo usando la tecla SHIFT.
         if (isGrounded && Input.GetKey(KeyCode.LeftShift))
         {
             gfx.localScale = new Vector3(gfx.localScale.x, crouchHeight, gfx.localScale.z);
         }
 
-        // * Recuperas tu tamaño original cuando...
-        // > Saltas, aunque estes manteniendo pulsando el botón de agachado.
+        // * Recuperas tu tamaï¿½o original cuando...
+        // > Saltas, aunque estes manteniendo pulsando el botï¿½n de agachado.
         if (isJumping && Input.GetKey(KeyCode.LeftShift))
         {
             gfx.localScale = new Vector3(gfx.localScale.x, 1f, gfx.localScale.z);
         }
 
-        // > Sueltas la tecla de agachado.
+        // Al soltar la tecla, vuelve al tamaï¿½o normal
         if (Input.GetKeyUp(KeyCode.LeftShift))
         {
             gfx.localScale = new Vector3(gfx.localScale.x, 1f, gfx.localScale.z);
@@ -74,22 +97,30 @@ public class MovimientoJugador : MonoBehaviour
     /// </summary>
     private void CalculateJumpPhysics()
     {
+        // Hace que la caï¿½da sea mï¿½s rï¿½pida (mejor sensaciï¿½n de juego)
         if (rb.linearVelocity.y < 0)
         {
-            rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
+            rb.linearVelocity += Vector2.up *
+                Physics2D.gravity.y *
+                (fallMultiplier - 1) *
+                Time.deltaTime;
         }
+        // Si suelta salto en el aire, reduce altura del salto
         else if (rb.linearVelocity.y > 0 && !Input.GetKey(KeyCode.Space))
         {
-            rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
+            rb.linearVelocity += Vector2.up *
+                Physics2D.gravity.y *
+                (lowJumpMultiplier - 1) *
+                Time.deltaTime;
         }
     }
 
     private void HoldJump()
     {
-        // Alarga el salto del personaje cuando mantienes pulsado el botón de salto.
+        // Alarga el salto del personaje cuando mantienes pulsado el botï¿½n de salto.
         if (Input.GetKey(KeyCode.Space) && isJumping)
         {
-            // Pero hasta cierto límite.
+            // Pero hasta cierto lï¿½mite.
             if (jumpTimer > 0)
             {
                 rb.linearVelocity = new Vector2(
@@ -101,7 +132,7 @@ public class MovimientoJugador : MonoBehaviour
             }
             else
             {
-                // Pasado este límite: empiezas a caer.
+                // Pasado este lï¿½mite: empiezas a caer.
                 isJumping = false;
             }
         }
@@ -109,7 +140,7 @@ public class MovimientoJugador : MonoBehaviour
 
     private void ReleaseJump()
     {
-        // Al soltar la tecla de salto, dejas de elevarte.
+        // Si suelta el botï¿½n de salto en el aire
         if (Input.GetKeyUp(KeyCode.Space))
         {
             isJumping = false;

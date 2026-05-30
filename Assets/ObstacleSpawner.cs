@@ -1,26 +1,14 @@
 using System.IO.IsolatedStorage;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
+using static obstacleName;
 
 public class ObstacleSpawner : MonoBehaviour
 {
-    // TODO: ¿Hay alguna forma de no acumular en memoria todos los obstaculos que surgen?
-    /// <summary>
-    /// Prefabs de los obstaculos a aparecer.
-    /// </summary>
     [SerializeField] private GameObject[] obstaclePrefab;
-    /// <summary>
-    /// Contiene todos los obstaculos que surgen en el juego.
-    /// </summary>
     [SerializeField] private Transform obstacleParent;
 
-    /// <summary>
-    /// Ratio de aparición.
-    /// </summary>
     public float spawnRate = 2f;
-    /// <summary>
-    /// Velocidad del obstaculo.
-    /// </summary>
     public float obstacleSpeed = 3f;
 
     [Range(0, 2)] public float dificultadspwn = 1f;
@@ -31,6 +19,8 @@ public class ObstacleSpawner : MonoBehaviour
 
     private float currentSpawnRate;
     private float currentObstacleSpeed;
+
+    [SerializeField] private float proyectilSpeedMultiplier = 1.3f;
 
     private float spawnTimer;
     private float tiempoVivo = 1f;
@@ -52,7 +42,6 @@ public class ObstacleSpawner : MonoBehaviour
         tiempoVivo += Time.deltaTime;
 
         CalcularDificultad();
-
         SpawnLoop();
         CheckObstacleCameraVisibility();
         ActualizarVelocidadObstaculos();
@@ -73,17 +62,71 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void Spawn()
     {
+
         GameObject obstacleToSpawn =
             obstaclePrefab[Random.Range(0, obstaclePrefab.Length)];
 
+        ObstacleData prefabData =
+            obstacleToSpawn.GetComponent<ObstacleData>();
+
+        if (prefabData == null)
+            return;
+
+        Vector3 spawnPos = transform.position;
+
+        // altura aleatoria segÃºn tipo
+        switch (prefabData.obstacleType)
+        {
+            case ObstacleType.Proyectil:
+                spawnPos.y += Random.Range(-2f, 2f);
+                break;
+
+            case ObstacleType.Pelota:
+                spawnPos.y += Random.Range(1f, 4f); // empieza mÃ¡s arriba
+                break;
+        }
+
         GameObject newObstacle =
-            Instantiate(obstacleToSpawn, transform.position, Quaternion.identity);
+            Instantiate(obstacleToSpawn, spawnPos, Quaternion.identity);
 
         newObstacle.transform.SetParent(obstacleParent);
 
         Rigidbody2D rb = newObstacle.GetComponent<Rigidbody2D>();
+        ObstacleData data = newObstacle.GetComponent<ObstacleData>();
 
-        rb.linearVelocity = Vector2.left * currentObstacleSpeed;
+        if (rb == null || data == null)
+            return;
+
+        switch (data.obstacleType)
+        {
+            case ObstacleType.Proyectil:
+
+                rb.gravityScale = 0f;
+                rb.linearVelocity =
+                    Vector2.left *
+                    (currentObstacleSpeed * proyectilSpeedMultiplier);
+
+                break;
+
+            case ObstacleType.Pelota:
+
+                // CLAVE: fÃ­sica completa
+                rb.gravityScale = 1f;
+                rb.linearVelocity =
+                    Vector2.left * currentObstacleSpeed;
+
+                break;
+
+            case ObstacleType.Spike:
+            case ObstacleType.SpikeRow:
+
+                rb.gravityScale = 0f;
+                rb.linearVelocity =
+                    Vector2.left * currentObstacleSpeed;
+
+                break;
+        }
+        Debug.Log("SPAWN: " + data.obstacleType);
     }
 
     private void ActualizarVelocidadObstaculos()
@@ -91,10 +134,36 @@ public class ObstacleSpawner : MonoBehaviour
         foreach (Transform child in obstacleParent)
         {
             Rigidbody2D rb = child.GetComponent<Rigidbody2D>();
+            ObstacleData data = child.GetComponent<ObstacleData>();
 
-            if (rb != null)
+            if (rb == null || data == null)
+                continue;
+
+            switch (data.obstacleType)
             {
-                rb.linearVelocity = Vector2.left * currentObstacleSpeed;
+                case ObstacleType.Proyectil:
+
+                    rb.linearVelocity =
+                        Vector2.left *
+                        (currentObstacleSpeed * proyectilSpeedMultiplier);
+
+                    break;
+
+                case ObstacleType.Pelota:
+
+                    // SOLO mantener velocidad horizontal
+                    rb.linearVelocity =
+                        new Vector2(-currentObstacleSpeed, rb.linearVelocity.y);
+
+                    break;
+
+                case ObstacleType.Spike:
+                case ObstacleType.SpikeRow:
+
+                    rb.linearVelocity =
+                        Vector2.left * currentObstacleSpeed;
+
+                    break;
             }
         }
     }
@@ -102,7 +171,7 @@ public class ObstacleSpawner : MonoBehaviour
     private void CalcularDificultad()
     {
         currentSpawnRate =
-            spawnRate / Mathf.Pow(tiempoVivo, (float)(1.5 * dificultadspwn));
+            spawnRate / Mathf.Pow(tiempoVivo, 1.5f * dificultadspwn);
 
         currentSpawnRate =
             Mathf.Clamp(currentSpawnRate, minSpawnRate, spawnRate);
@@ -114,10 +183,8 @@ public class ObstacleSpawner : MonoBehaviour
     private void ResetValues()
     {
         tiempoVivo = 1f;
-
         currentSpawnRate = spawnRate;
         currentObstacleSpeed = obstacleSpeed;
-
         spawnTimer = 0f;
     }
 
@@ -156,25 +223,25 @@ public class ObstacleSpawner : MonoBehaviour
     }
 
     /// <summary>
-    /// Devuelve el rectángulo visible por la cámara 2D en base a las coordenadas del mundo.
+    /// Devuelve el rectï¿½ngulo visible por la cï¿½mara 2D en base a las coordenadas del mundo.
     /// </summary>
     /// <returns>
-    /// Rectangulo del area visible de la cámara 2D.
+    /// Rectangulo del area visible de la cï¿½mara 2D.
     /// </returns>
     public Rect GetCameraVisibleRect()
     {
-        // Calculo la altura visible de la cámara 2D (2 * cam.orthographicSize).
+        // Calculo la altura visible de la cï¿½mara 2D (2 * cam.orthographicSize).
         Camera cam = Camera.main;
-        // En vista ortografica, la cámara devuelve la mitad de su tamaño.
+        // En vista ortografica, la cï¿½mara devuelve la mitad de su tamaï¿½o.
         float height = 2f * cam.orthographicSize;
 
-        // Calculo el ancho visible de la cámara 2D (altura * su Aspect Ratio).
+        // Calculo el ancho visible de la cï¿½mara 2D (altura * su Aspect Ratio).
         float width = height * cam.aspect;
 
-        // Obtengo la posición 3D de la cámara.
+        // Obtengo la posiciï¿½n 3D de la cï¿½mara.
         Vector3 cameraPos = cam.transform.position;
 
-        // Calculo el punto de origen (esquina superior-izquierda) de la zona visible de la cámara.
+        // Calculo el punto de origen (esquina superior-izquierda) de la zona visible de la cï¿½mara.
         float left = cameraPos.x - width / 2f;
         float top = cameraPos.y - height / 2f;
 

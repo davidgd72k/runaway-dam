@@ -7,7 +7,7 @@ using UnityEngine.SocialPlatforms.Impl;
 public static class ScoreUtils
 {
     /// <summary>
-    /// Redondea la puntuación a un valor entero.
+    /// Redondea la puntuaciï¿½n a un valor entero.
     /// </summary>
     /// <param name="score">Puntos a redondear.</param>
     /// <returns>String de los puntos redondeado a INT.</returns>

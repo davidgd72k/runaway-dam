@@ -1,13 +1,8 @@
 using UnityEngine;
 
-/// <summary>
-/// Almacen de datos para guardar en memoria.
-/// </summary>
-[System.Serializable]
+[System.Serializable] // Permite guardar esta clase en JSON o archivos
 public class Data
 {
-    /// <summary>
-    /// Record registrado.
-    /// </summary>
+    // Guarda el mejor score (récord) del jugador
     public float highScore;
 }

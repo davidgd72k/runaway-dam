@@ -8,7 +8,7 @@ public static class SaveSystem
     /// </summary>
     public static readonly string SAVE_FOLDER = Application.persistentDataPath + "/saves/";
     /// <summary>
-    /// Extensión del fichero de guardado.
+    /// Extensiï¿½n del fichero de guardado.
     /// </summary>
     public static readonly string FILE_EXT = ".json";
 
@@ -36,8 +36,10 @@ public static class SaveSystem
     /// <returns>JSON con los datos del juego.</returns>
     public static string Load(string filename)
     {
+        // Ruta completa del archivo
         string fileLoc = SAVE_FOLDER + filename + FILE_EXT;
-        
+
+        // Si existe, lo lee y lo devuelve
         if (File.Exists(fileLoc))
         {
             // Cargamos el fichero de guardado.
@@ -46,7 +48,7 @@ public static class SaveSystem
         }
         else
         {
-            // No se encontró el fichero de guardado.
+            // No se encontrï¿½ el fichero de guardado.
             return null;
         }
     }

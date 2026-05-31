@@ -10,7 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8220445839967251600}
   - component: {fileID: 4016867477160602685}
-  - component: {fileID: 6170594837978768167}
+  - component: {fileID: 7463530305164945642}
+  - component: {fileID: 1859817676892656144}
   m_Layer: 8
   m_Name: spike
   m_TagString: obstacle
@@ -62,7 +63,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 6
---- !u!114 &6170594837978768167
+--- !u!114 &7463530305164945642
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

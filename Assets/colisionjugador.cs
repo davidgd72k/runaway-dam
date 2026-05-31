@@ -20,11 +20,18 @@ public class ColisionJugador : MonoBehaviour
         // Si el jugador choca con un objeto con tag "obstacle", pierde
         if (collision.transform.CompareTag("obstacle"))
         {
-            // Desactiva al jugador
-            gameObject.SetActive(false);
+            GameManager.instance.DamagePlayer();
+            int life = GameManager.instance.CurrentLife;
+            
+            if (life == 0)
+            {
+                // Desactiva al jugador
+                gameObject.SetActive(false);
 
-            // Lanza el Game Over en el GameManager
-            GameManager.instance.LaunchGameover();
+                // Lanza el Game Over en el GameManager
+                GameManager.instance.LaunchGameover();
+            }
+
         }
     }
 }

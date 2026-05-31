@@ -1,4 +1,6 @@
+using System.IO.IsolatedStorage;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 using static obstacleName;
 
 public class ObstacleSpawner : MonoBehaviour
@@ -13,6 +15,7 @@ public class ObstacleSpawner : MonoBehaviour
     [Range(0, 2)] public float dificultadvelo = 0.5f;
 
     public float minSpawnRate = 0.3f;
+    public float obstacleDeletingOffser = 10.0f;
 
     private float currentSpawnRate;
     private float currentObstacleSpeed;
@@ -21,6 +24,7 @@ public class ObstacleSpawner : MonoBehaviour
 
     private float spawnTimer;
     private float tiempoVivo = 1f;
+
 
     private void Start()
     {
@@ -39,8 +43,11 @@ public class ObstacleSpawner : MonoBehaviour
 
         CalcularDificultad();
         SpawnLoop();
+        CheckObstacleCameraVisibility();
         ActualizarVelocidadObstaculos();
     }
+
+   
 
     private void SpawnLoop()
     {
@@ -48,6 +55,7 @@ public class ObstacleSpawner : MonoBehaviour
 
         if (spawnTimer >= currentSpawnRate)
         {
+            Debug.Log("Spawn obstaculo.");
             Spawn();
             spawnTimer = 0f;
         }
@@ -55,7 +63,7 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void Spawn()
     {
-
+        Debug.Log(string.Format("Num random: {0}", Random.Range(0, obstaclePrefab.Length)));
         GameObject obstacleToSpawn =
             obstaclePrefab[Random.Range(0, obstaclePrefab.Length)];
 
@@ -187,5 +195,48 @@ public class ObstacleSpawner : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+    }
+
+    private void CheckObstacleCameraVisibility()
+    {
+        for (int i = 0; i < obstacleParent.childCount; i++)
+        {
+            Transform obj = obstacleParent.GetChild(i);
+            Rect camRect = GetCameraVisibleRect();
+            
+            if (obj.position.x < (camRect.x - obstacleDeletingOffser))
+            {
+                print("BORRAME");
+                Destroy(obj.gameObject);
+                print("Borrado");
+            }
+
+        }
+    }
+
+    /// <summary>
+    /// Devuelve el rect�ngulo visible por la c�mara 2D en base a las coordenadas del mundo.
+    /// </summary>
+    /// <returns>
+    /// Rectangulo del area visible de la c�mara 2D.
+    /// </returns>
+    public Rect GetCameraVisibleRect()
+    {
+        // Calculo la altura visible de la c�mara 2D (2 * cam.orthographicSize).
+        Camera cam = Camera.main;
+        // En vista ortografica, la c�mara devuelve la mitad de su tama�o.
+        float height = 2f * cam.orthographicSize;
+
+        // Calculo el ancho visible de la c�mara 2D (altura * su Aspect Ratio).
+        float width = height * cam.aspect;
+
+        // Obtengo la posici�n 3D de la c�mara.
+        Vector3 cameraPos = cam.transform.position;
+
+        // Calculo el punto de origen (esquina superior-izquierda) de la zona visible de la c�mara.
+        float left = cameraPos.x - width / 2f;
+        float top = cameraPos.y - height / 2f;
+
+        return new Rect(left, top, width, height);
     }
 }

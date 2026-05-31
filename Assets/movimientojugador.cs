@@ -12,25 +12,25 @@ public class MovimientoJugador : MonoBehaviour
     // Fuerza del salto inicial
     [SerializeField] private float jumpForce = 10f;
 
-    // Capa del suelo para detectar si est� tocando el suelo
+    // Capa del suelo para detectar si estï¿½ tocando el suelo
     [SerializeField] private LayerMask groundLayer;
 
-    // Punto de comprobaci�n del suelo (pies)
+    // Punto de comprobaciï¿½n del suelo (pies)
     [SerializeField] private Transform feetPos;
 
     // Distancia para detectar el suelo
     [SerializeField] private float groundDistance = 0.25f;
 
-    // Tiempo m�ximo para mantener el salto
+    // Tiempo mï¿½ximo para mantener el salto
     [SerializeField] private float jumpTime = 0.2f;
 
     // Fuerza adicional mientras se mantiene el salto
     [SerializeField] private float jumpForceHold = 20f;
 
-    // Multiplicador de ca�da m�s r�pida
+    // Multiplicador de caï¿½da mï¿½s rï¿½pida
     [SerializeField] private float fallMultiplier = 2.5f;
 
-    // Multiplicador para salto corto si sueltas el bot�n
+    // Multiplicador para salto corto si sueltas el botï¿½n
     [SerializeField] private float lowJumpMultiplier = 2f;
 
     // Altura cuando el personaje se agacha
@@ -49,21 +49,21 @@ public class MovimientoJugador : MonoBehaviour
 
     private void Update()
     {
-        // Comprueba si el jugador est� tocando el suelo
+        // Comprueba si el jugador estï¿½ tocando el suelo
         isGrounded = Physics2D.OverlapCircle(feetPos.position, groundDistance, groundLayer);
 
-        // Ejecuta toda la l�gica de movimiento
+        // Ejecuta toda la lï¿½gica de movimiento
         Jump();
         HoldJump();
         ReleaseJump();
-        CalculateJumpPhysics();
         Crouch();
+        CalculateJumpPhysics();
 
-        // Si el personaje no est� en el suelo, reproducir animaci�n de salto
+        // Si el personaje no está en el suelo, reproducir animación de salto
         if (!isGrounded)
         {
             animator.SetBool("isjumping", true);
-            // Asegurarse de que la animaci�n de andar no se reproduzca en el aire
+            // Asegurarse de que la animación de andar no se reproduzca en el aire
             }
         else
         {
@@ -72,7 +72,7 @@ public class MovimientoJugador : MonoBehaviour
 
         if(isCrouching)
         {
-            animator.SetBool("iscrouching", true); //Si se est� moviendo, reproduzco la animaci�n
+            animator.SetBool("iscrouching", true); //Si se está moviendo, reproduzco la animación
         }
         else
         {
@@ -80,9 +80,12 @@ public class MovimientoJugador : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Controla el funcionamiento del salto del personaje.
+    /// </summary>
     private void Jump()
     {
-        // Salto inicial si est� en el suelo
+        // Salto inicial si estï¿½ en el suelo
         if (isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
             isJumping = true;
@@ -92,16 +95,20 @@ public class MovimientoJugador : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Controla el funcionamiento del agacharse del personaje.
+    /// </summary>
     private void Crouch()
     {
-        // Agacharse mientras est� en el suelo
+        // Solo puedes agacharte cuando estï¿½ en el suelo usando la tecla SHIFT.
         if (isGrounded && Input.GetKey(KeyCode.LeftShift))
         {
             gfx.localScale = new Vector3(gfx.localScale.x, crouchHeight, gfx.localScale.z);
             isCrouching = true;
         }
 
-        // Si est� en el aire, vuelve al tama�o normal
+        // * Recuperas tu tamaï¿½o original cuando...
+        // > Saltas, aunque estes manteniendo pulsando el botï¿½n de agachado.
         if (isJumping && Input.GetKey(KeyCode.LeftShift))
         {
             gfx.localScale = new Vector3(gfx.localScale.x, 1f, gfx.localScale.z);
@@ -109,7 +116,7 @@ public class MovimientoJugador : MonoBehaviour
 
         }
 
-        // Al soltar la tecla, vuelve al tama�o normal
+        // Al soltar la tecla, vuelve al tamaï¿½o normal
         if (Input.GetKeyUp(KeyCode.LeftShift))
         {
             gfx.localScale = new Vector3(gfx.localScale.x, 1f, gfx.localScale.z);
@@ -118,9 +125,12 @@ public class MovimientoJugador : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     private void CalculateJumpPhysics()
     {
-        // Hace que la ca�da sea m�s r�pida (mejor sensaci�n de juego)
+        // Hace que la caï¿½da sea mï¿½s rï¿½pida (mejor sensaciï¿½n de juego)
         if (rb.linearVelocity.y < 0)
         {
             rb.linearVelocity += Vector2.up *
@@ -140,9 +150,10 @@ public class MovimientoJugador : MonoBehaviour
 
     private void HoldJump()
     {
-        // Mantener salto mientras haya tiempo disponible
+        // Alarga el salto del personaje cuando mantienes pulsado el botï¿½n de salto.
         if (Input.GetKey(KeyCode.Space) && isJumping)
         {
+            // Pero hasta cierto lï¿½mite.
             if (jumpTimer > 0)
             {
                 isJumping = true;
@@ -155,6 +166,7 @@ public class MovimientoJugador : MonoBehaviour
             }
             else
             {
+                // Pasado este lï¿½mite: empiezas a caer.
                 isJumping = false;
             }
         }
@@ -162,12 +174,12 @@ public class MovimientoJugador : MonoBehaviour
 
     private void ReleaseJump()
     {
-        // Si suelta el bot�n de salto en el aire
+        // Si suelta el botï¿½n de salto en el aire
         if (Input.GetKeyUp(KeyCode.Space))
         {
             isJumping = false;
 
-            // Reduce la velocidad hacia arriba si estaba subiendo
+            // Aplica una fuerza hacia el suelo.
             if (rb.linearVelocity.y > 0)
             {
                 rb.linearVelocity = new Vector2(

@@ -66,11 +66,11 @@ public class UIManager : MonoBehaviour
         // Evito llenar la memoria de strings únicos.
         // String con los puntos actuales del jugador.
         sbScore.Clear();
-        sbScore.Append(ScoreUtils.RoundScoreToInt(gm.score) ?? "0");
+        sbScore.Append(string.Format("{0}m", ScoreUtils.RoundScoreToInt(gm.score) ?? "0"));
 
         // String con la vida actual del jugador.
         sbLife.Clear();
-        sbLife.Append(string.Format("Vidas: {0}", Convert.ToString(GameManager.instance.CurrentLife) ?? "???"));
+        sbLife.Append(string.Format("{0}", Convert.ToString(GameManager.instance.CurrentLife) ?? "???"));
         
         // Muestro los textos por pantalla.
         scoreText.text = sbScore.ToString();

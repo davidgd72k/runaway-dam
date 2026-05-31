@@ -4156,9 +4156,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   obstaclePrefab:
-  - {fileID: 7249754279550439784, guid: 35af19c871e15bf4986e67194e9694bf, type: 3}
-  - {fileID: 7249754279550439784, guid: 35af19c871e15bf4986e67194e9694bf, type: 3}
-  - {fileID: 7249754279550439784, guid: 35af19c871e15bf4986e67194e9694bf, type: 3}
+  - {fileID: 2266520410860354505, guid: b116a2f4dac5e804da3860f4d1401825, type: 3}
+  - {fileID: 3816585935012183275, guid: c2fba7e7a2fabfd44b88ea45f7481f6d, type: 3}
+  - {fileID: 6458440306171492321, guid: 84d5d273ce038f8429b8f2cbcb6dc3ea, type: 3}
   - {fileID: 7249754279550439784, guid: 35af19c871e15bf4986e67194e9694bf, type: 3}
   obstacleParent: {fileID: 1367624521}
   spawnRate: 5

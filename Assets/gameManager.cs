@@ -28,6 +28,9 @@ public class GameManager : MonoBehaviour
     // Score actual de la partida
     public float score = 0f;
 
+    public float gameplayVelocity = 5f;
+    public float velocityMultiplier = 1f;
+
     public int extraLife = 2;
     private int currentLife = 1;
     public int CurrentLife { get { return currentLife; } }
@@ -61,10 +64,10 @@ public class GameManager : MonoBehaviour
 
     public void Update()
     {
-        // Mientras el juego esté activo, el score aumenta con el tiempo
+        // Mientras el juego esté activo, el score aumenta con el tiempo.
         if (isPlaying && currentLife > 0)
         {
-            score += Time.deltaTime;
+            score += gameplayVelocity * velocityMultiplier * Time.deltaTime;
         }
     }
 
@@ -124,3 +127,15 @@ public class GameManager : MonoBehaviour
         isPlayerDamagable = true;
     }
 }
+
+// TODO: implementar sistema de puntos basado en la distancia del jugador.
+/*
+ public float velocidadJuego = 5f;
+public float puntuacion = 0f;
+public float multiplicador = 10f;
+
+void Update()
+{
+    puntuacion += velocidadJuego * multiplicador * Time.deltaTime;
+}
+ */

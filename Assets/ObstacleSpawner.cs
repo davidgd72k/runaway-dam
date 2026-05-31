@@ -55,6 +55,7 @@ public class ObstacleSpawner : MonoBehaviour
 
         if (spawnTimer >= currentSpawnRate)
         {
+            Debug.Log("Spawn obstaculo.");
             Spawn();
             spawnTimer = 0f;
         }
@@ -62,7 +63,7 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void Spawn()
     {
-
+        Debug.Log(string.Format("Num random: {0}", Random.Range(0, obstaclePrefab.Length)));
         GameObject obstacleToSpawn =
             obstaclePrefab[Random.Range(0, obstaclePrefab.Length)];
 
@@ -211,15 +212,6 @@ public class ObstacleSpawner : MonoBehaviour
             }
 
         }
-    }
-
-    private Vector3 DebugViewportRect(Rect viewport)
-    {
-        Debug.Log($"Viewport X: {viewport.x}, Y: {viewport.y}");
-        Debug.Log($"Viewport Width: {viewport.width}, Height: {viewport.height}");
-
-        
-        return Vector3.zero;
     }
 
     /// <summary>

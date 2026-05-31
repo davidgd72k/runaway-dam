@@ -1,9 +1,11 @@
 using NUnit.Framework.Interfaces;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 
 public class GameManager : MonoBehaviour
 {
+    public const int BASE_LIFE = 1;
     // Singleton: asegura que solo exista un GameManager en toda la partida
     public static GameManager instance;
 
@@ -25,6 +27,11 @@ public class GameManager : MonoBehaviour
 
     // Score actual de la partida
     public float score = 0f;
+
+    public int extraLife = 2;
+    private int currentLife = 1;
+    public int CurrentLife { get { return currentLife; } }
+    private bool isPlayerDamagable = true;
 
     // Indica si el juego está activo o no
     public bool isPlaying = false;
@@ -55,7 +62,7 @@ public class GameManager : MonoBehaviour
     public void Update()
     {
         // Mientras el juego esté activo, el score aumenta con el tiempo
-        if (isPlaying)
+        if (isPlaying && currentLife > 0)
         {
             score += Time.deltaTime;
         }
@@ -71,6 +78,7 @@ public class GameManager : MonoBehaviour
 
         // Reiniciamos score
         score = 0;
+        currentLife = BASE_LIFE + extraLife;
 
         // Activamos estado de juego
         isPlaying = true;
@@ -93,5 +101,26 @@ public class GameManager : MonoBehaviour
 
         // Avisamos a otros scripts de que terminó la partida
         onGameOver.Invoke();
+    }
+
+    public void DamagePlayer()
+    {
+        // Estas con i-frames activados.
+        if (!isPlayerDamagable)
+            return;
+
+        currentLife--;
+        Debug.Log("Daño recibido. Vida actual: " + currentLife);
+
+        // Activo los i-frames.
+        StartCoroutine(Invulneratibity());
+    }
+
+    IEnumerator Invulneratibity()
+    {
+        isPlayerDamagable = false;
+        // TODO: meter en una variable el tiempo de invencibilidad.
+        yield return new WaitForSeconds(1);
+        isPlayerDamagable = true;
     }
 }

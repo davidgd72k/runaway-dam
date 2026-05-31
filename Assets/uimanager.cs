@@ -1,5 +1,7 @@
 using UnityEngine;
 using TMPro;
+using System.Text;
+using System;
 
 public class UIManager : MonoBehaviour
 {
@@ -7,9 +9,14 @@ public class UIManager : MonoBehaviour
     /// Texto que muestra los puntos durante la partida
     /// </summary>
     [SerializeField] private TextMeshProUGUI scoreText;
+    
+    /// <summary>
+    /// Texto que muestra las vidas actual del jugador.
+    /// </summary>
+    [SerializeField] private TextMeshProUGUI lifeText;
 
     /// <summary>
-    /// UI del men� inicial (pantalla de inicio)
+    /// UI del menú inicial (pantalla de inicio)
     /// </summary>
     [SerializeField] private GameObject startmenuUI;
 
@@ -19,14 +26,18 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject gameOverUI;
 
     /// <summary>
-    /// Texto que muestra la puntuaci�n final en Game Over
+    /// Texto que muestra la puntuación final en Game Over
     /// </summary>
     [SerializeField] TextMeshProUGUI gameOverScoreUI;
 
     /// <summary>
-    /// Texto que muestra el r�cord guardado
+    /// Texto que muestra el record guardado
     /// </summary>
     [SerializeField] TextMeshProUGUI gameOverHighscoreUI;
+
+    private StringBuilder sbScore;
+    private StringBuilder sbLife;
+
 
     /// <summary>
     /// Referencia al GameManager (gestiona el estado del juego)
@@ -35,6 +46,8 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        sbScore = new StringBuilder();
+        sbLife = new StringBuilder();
         // Intentamos obtener el GameManager existente en la escena
         // primero usando el singleton, y si no existe, lo busca en la escena
         gm = GameManager.instance ?? FindAnyObjectByType<GameManager>();
@@ -42,6 +55,7 @@ public class UIManager : MonoBehaviour
         // Si el texto de score no est� asignado en el inspector,
         // intenta encontrar uno autom�ticamente en la escena
         scoreText = scoreText ?? FindAnyObjectByType<TextMeshProUGUI>();
+        lifeText = lifeText ?? FindAnyObjectByType<TextMeshProUGUI>();
 
         // Nos suscribimos al evento de Game Over para actualizar la UI
         gm.onGameOver.AddListener(UIGameOver);
@@ -49,8 +63,20 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
-        // Actualiza el texto del score cada frame mientras el juego corre
-        scoreText.text = ScoreUtils.RoundScoreToInt(gm.score) ?? "0";
+        // Evito llenar la memoria de strings únicos.
+        // String con los puntos actuales del jugador.
+        sbScore.Clear();
+        sbScore.Append(ScoreUtils.RoundScoreToInt(gm.score) ?? "0");
+
+        // String con la vida actual del jugador.
+        sbLife.Clear();
+        sbLife.Append(string.Format("Vidas: {0}", Convert.ToString(GameManager.instance.CurrentLife) ?? "???"));
+        
+        // Muestro los textos por pantalla.
+        scoreText.text = sbScore.ToString();
+        lifeText.text = sbLife.ToString();
+
+        
     }
 
     /// <summary>

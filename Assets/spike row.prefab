@@ -10,7 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6434917341349564404}
   - component: {fileID: 9203975943231482915}
-  - component: {fileID: 7703914902279005585}
+  - component: {fileID: 1563647492144812088}
+  - component: {fileID: 3018052466789739474}
   m_Layer: 8
   m_Name: spike row
   m_TagString: obstacle
@@ -63,7 +64,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 6
---- !u!114 &7703914902279005585
+--- !u!114 &1563647492144812088
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -72,9 +73,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 3816585935012183275}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b74121d7da8c6c8448ad5aa0ef2e456a, type: 3}
+  m_Script: {fileID: 11500000, guid: 3778337b363ad7c4596aa46bcd65ac8a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ObstacleBehavior
+  m_EditorClassIdentifier: Assembly-CSharp::obstacleName
+--- !u!114 &3018052466789739474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3816585935012183275}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f5498e4de706434d96cbd07f4b8fba2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObstacleData
+  obstacleType: 0
 --- !u!1 &4299533101444411901
 GameObject:
   m_ObjectHideFlags: 0

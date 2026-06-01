@@ -16,6 +16,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI lifeText;
 
     /// <summary>
+    /// Texto que contiene la velocidad actual de la partida.
+    /// </summary>
+    [SerializeField] private TextMeshProUGUI speedText;
+
+    /// <summary>
     /// UI del menú inicial (pantalla de inicio)
     /// </summary>
     [SerializeField] private GameObject startmenuUI;
@@ -37,6 +42,7 @@ public class UIManager : MonoBehaviour
 
     private StringBuilder sbScore;
     private StringBuilder sbLife;
+    private StringBuilder sbSpeed;
 
 
     /// <summary>
@@ -48,6 +54,7 @@ public class UIManager : MonoBehaviour
     {
         sbScore = new StringBuilder();
         sbLife = new StringBuilder();
+        sbSpeed = new StringBuilder();
         // Intentamos obtener el GameManager existente en la escena
         // primero usando el singleton, y si no existe, lo busca en la escena
         gm = GameManager.instance ?? FindAnyObjectByType<GameManager>();
@@ -71,10 +78,14 @@ public class UIManager : MonoBehaviour
         // String con la vida actual del jugador.
         sbLife.Clear();
         sbLife.Append(string.Format("{0}", Convert.ToString(GameManager.instance.CurrentLife) ?? "???"));
-        
+
+        sbSpeed.Clear();
+        sbSpeed.Append(string.Format("x{0}", Convert.ToString(GameManager.instance.velocityMultiplier) ?? "???"));
+
         // Muestro los textos por pantalla.
         scoreText.text = sbScore.ToString();
         lifeText.text = sbLife.ToString();
+        speedText.text = sbSpeed.ToString();
 
         
     }

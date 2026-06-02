@@ -20,6 +20,8 @@ public class UIManager : MonoBehaviour
     /// </summary>
     [SerializeField] private TextMeshProUGUI speedText;
 
+    [SerializeField] private TextMeshProUGUI skillShopText;
+
     /// <summary>
     /// UI del menú inicial (pantalla de inicio)
     /// </summary>
@@ -43,6 +45,8 @@ public class UIManager : MonoBehaviour
     private StringBuilder sbScore;
     private StringBuilder sbLife;
     private StringBuilder sbSpeed;
+    private StringBuilder sbSkillPoints;
+
 
 
     /// <summary>
@@ -55,6 +59,8 @@ public class UIManager : MonoBehaviour
         sbScore = new StringBuilder();
         sbLife = new StringBuilder();
         sbSpeed = new StringBuilder();
+        sbSkillPoints = new StringBuilder();
+
         // Intentamos obtener el GameManager existente en la escena
         // primero usando el singleton, y si no existe, lo busca en la escena
         gm = GameManager.instance ?? FindAnyObjectByType<GameManager>();
@@ -63,6 +69,7 @@ public class UIManager : MonoBehaviour
         // intenta encontrar uno autom�ticamente en la escena
         scoreText = scoreText ?? FindAnyObjectByType<TextMeshProUGUI>();
         lifeText = lifeText ?? FindAnyObjectByType<TextMeshProUGUI>();
+        skillShopText = skillShopText ?? FindAnyObjectByType<TextMeshProUGUI>();
 
         // Nos suscribimos al evento de Game Over para actualizar la UI
         gm.onGameOver.AddListener(UIGameOver);
@@ -82,12 +89,14 @@ public class UIManager : MonoBehaviour
         sbSpeed.Clear();
         sbSpeed.Append(string.Format("x{0}", Convert.ToString(GameManager.instance.velocityMultiplier) ?? "???"));
 
-        // Muestro los textos por pantalla.
+        sbSkillPoints.Clear();
+        sbSkillPoints.Append(string.Format("Skill points: {0}", skiltree.instance.SkillPoints.ToString()));
+
+        // Actualizo los textos por pantalla.
         scoreText.text = sbScore.ToString();
         lifeText.text = sbLife.ToString();
         speedText.text = sbSpeed.ToString();
-
-        
+        skillShopText.text = sbSkillPoints.ToString();
     }
 
     /// <summary>

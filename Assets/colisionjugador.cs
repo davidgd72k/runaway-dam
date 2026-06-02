@@ -20,6 +20,10 @@ public class ColisionJugador : MonoBehaviour
         // Si el jugador choca con un objeto con tag "obstacle", pierde
         if (collision.transform.CompareTag("obstacle"))
         {
+            // Cuando estás haciendo el dash, nada te hace daño, pues eres INVENCIBLE.
+            if (GameManager.instance.invencible)
+                return;
+
             GameManager.instance.DamagePlayer();
             int life = GameManager.instance.CurrentLife;
             

@@ -727,9 +727,11 @@ MonoBehaviour:
   gameplayVelocity: 5
   velocityMultiplier: 1
   extraLife: 2
+  invencible: 0
   isPlaying: 0
   data:
     highScore: 0
+  currentDashState: 0
   onGameOver:
     m_PersistentCalls:
       m_Calls: []
@@ -2766,7 +2768,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &519618700
 RectTransform:
   m_ObjectHideFlags: 0

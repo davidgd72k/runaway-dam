@@ -1,15 +1,24 @@
 using NUnit.Framework.Interfaces;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 
 public class GameManager : MonoBehaviour
 {
+    public enum DashState
+    {
+        Available,
+        Using,
+        Waiting
+    }
+
     public const int BASE_LIFE = 1;
+
+    #region GameManager singleton
     // Singleton: asegura que solo exista un GameManager en toda la partida
     public static GameManager instance;
 
-    #region GameManager singleton
     private void Awake()
     {
         // Si no existe instancia, esta se convierte en la principal
@@ -25,14 +34,22 @@ public class GameManager : MonoBehaviour
     }
     #endregion
 
+    [SerializeField] private GameObject playerCharacter;
+    private SpriteRenderer spriteRender;
+
     // Score actual de la partida
     public float score = 0f;
 
     public float gameplayVelocity = 5f;
     public float velocityMultiplier = 1f;
 
+    public float dashingTime = 5f;
+    public float cooldownTime = 5f;
+
     public int extraLife = 2;
     private int currentLife = 1;
+
+    public bool invencible = false;
     public int CurrentLife { get { return currentLife; } }
     private bool isPlayerDamagable = true;
 
@@ -41,6 +58,9 @@ public class GameManager : MonoBehaviour
 
     // Datos guardados (como el high score)
     public Data data;
+
+    public DashState currentDashState = DashState.Available;
+    public DashState lastDashState = DashState.Available;
 
     // Evento que se dispara cuando el jugador pierde
     public UnityEvent onGameOver = new UnityEvent();
@@ -60,6 +80,8 @@ public class GameManager : MonoBehaviour
             // Si no hay guardado, creamos uno nuevo
             data = new Data();
         }
+
+        spriteRender = playerCharacter.GetComponent<SpriteRenderer>();
     }
 
     public void Update()
@@ -68,7 +90,20 @@ public class GameManager : MonoBehaviour
         if (isPlaying && currentLife > 0)
         {
             score += gameplayVelocity * velocityMultiplier * Time.deltaTime;
+
+            if (Input.GetKeyDown(KeyCode.LeftControl) && (invencible == false) && currentDashState == DashState.Available)
+            {
+                currentDashState = DashState.Using;
+            }
+
+            if (currentDashState != lastDashState)
+            {
+                ChangeDashState(currentDashState);
+                lastDashState = currentDashState;
+            }
         }
+
+        
     }
 
     // Evento que se dispara al empezar a jugar
@@ -116,26 +151,59 @@ public class GameManager : MonoBehaviour
         Debug.Log("Daño recibido. Vida actual: " + currentLife);
 
         // Activo los i-frames.
-        StartCoroutine(Invulneratibity());
+        StartCoroutine(DamageInvulneratibity());
     }
 
-    IEnumerator Invulneratibity()
+    IEnumerator DamageInvulneratibity()
     {
         isPlayerDamagable = false;
         // TODO: meter en una variable el tiempo de invencibilidad.
         yield return new WaitForSeconds(1);
+
         isPlayerDamagable = true;
     }
-}
 
-// TODO: implementar sistema de puntos basado en la distancia del jugador.
-/*
- public float velocidadJuego = 5f;
-public float puntuacion = 0f;
-public float multiplicador = 10f;
+    IEnumerator EnableDashing()
+    {
+        Debug.Log("Dasheando.");
+        currentDashState = DashState.Using;
+        spriteRender.color = Color.yellow;
+        invencible = true;
+        // TODO: que el tiempo sea en una variable.
+        yield return new WaitForSeconds(dashingTime);
+        Debug.Log("Se acaba el dashing");
+        spriteRender.color = Color.gray;
+        currentDashState = DashState.Waiting;
+        invencible = false;
+    }
 
-void Update()
-{
-    puntuacion += velocidadJuego * multiplicador * Time.deltaTime;
+    IEnumerator CooldownDashing()
+    {
+        //Debug.Log("Cooldown dashing.");
+
+        // TODO: que el tiempo sea en una variable.
+        var cooldownMult = PlayerAbilities.instance.improveCooldownDash;
+        yield return new WaitForSeconds(cooldownTime * cooldownMult);
+        //Debug.Log("Dash recuperado");
+        spriteRender.color = Color.white;
+        currentDashState = DashState.Available;
+    }
+
+    public void ChangeDashState(DashState newDashState)
+    {
+        currentDashState = newDashState;
+
+        switch (currentDashState)
+        {
+            case DashState.Available:
+                // Hago algo.
+                break;
+            case DashState.Using:
+                StartCoroutine(EnableDashing());
+                break;
+            case DashState.Waiting:
+                StartCoroutine(CooldownDashing());
+                break;
+        }
+    }
 }
- */

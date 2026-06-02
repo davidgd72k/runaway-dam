@@ -27,7 +27,7 @@ public class MovimientoJugador : MonoBehaviour
     // Fuerza adicional mientras se mantiene el salto
     [SerializeField] private float jumpForceHold = 20f;
 
-    // Multiplicador de caï¿½da mï¿½s rï¿½pida
+    // Multiplicador de caída.
     [SerializeField] private float fallMultiplier = 2.5f;
 
     // Multiplicador para salto corto si sueltas el botï¿½n
@@ -51,14 +51,16 @@ public class MovimientoJugador : MonoBehaviour
 
     private void Update()
     {
-        // Comprueba si el jugador estï¿½ tocando el suelo
+        // Comprueba si el jugador está tocando el suelo.
         isGrounded = Physics2D.OverlapCircle(feetPos.position, groundDistance, groundLayer);
+
+        // Tocar el suelo recarga los saltos extra.
         if (isGrounded)
         {
             extraJumps = 1;
         }
 
-        // Ejecuta toda la lï¿½gica de movimiento
+        // Ejecuta toda la lógica del salto.
         Jump();
         HoldJump();
         ReleaseJump();
@@ -68,8 +70,8 @@ public class MovimientoJugador : MonoBehaviour
         // Si el personaje no está en el suelo, reproducir animación de salto
         if (!isGrounded)
         {
-            animator.SetBool("isjumping", true);
             // Asegurarse de que la animación de andar no se reproduzca en el aire
+            animator.SetBool("isjumping", true);
         }
         else
         {
@@ -108,6 +110,9 @@ public class MovimientoJugador : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Aplica la fuerza del salto al personaje.
+    /// </summary>
     private void DoJump()
     {
         isJumping = true;
@@ -147,7 +152,7 @@ public class MovimientoJugador : MonoBehaviour
     }
 
     /// <summary>
-    /// 
+    /// Calcula las físicas que se aplican al personaje durante su salto.
     /// </summary>
     private void CalculateJumpPhysics()
     {
@@ -187,7 +192,7 @@ public class MovimientoJugador : MonoBehaviour
             }
             else
             {
-                // Pasado este lï¿½mite: empiezas a caer.
+                // Pasado este límite: empiezas a caer.
                 isJumping = false;
             }
         }
@@ -195,7 +200,7 @@ public class MovimientoJugador : MonoBehaviour
 
     private void ReleaseJump()
     {
-        // Si suelta el botï¿½n de salto en el aire
+        // Si suelta el botón de salto en el aire
         if (Input.GetKeyUp(KeyCode.Space))
         {
             isJumping = false;

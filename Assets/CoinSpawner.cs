@@ -10,6 +10,9 @@ public class CoinSpawner : MonoBehaviour
     [SerializeField] private float minY = -2f;
     [SerializeField] private float maxY = 2f;
 
+    [SerializeField] private float minSpeed = 10f;
+    [SerializeField] private float maxSpeed = 30f;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -32,7 +35,8 @@ public class CoinSpawner : MonoBehaviour
             0f
         );
 
-        Instantiate(coinPrefab, spawnPos, Quaternion.identity);
+        Coin coin = Instantiate(coinPrefab, spawnPos, Quaternion.identity).GetComponent<Coin>();
+        coin.speed = Random.Range(minSpeed, maxSpeed);
 
         // Vuelve a llamarse a sí mismo para repetir este proceso.
         Invoke(nameof(SpawnCoin), Random.Range(minSpawnTime, maxSpawnTime));

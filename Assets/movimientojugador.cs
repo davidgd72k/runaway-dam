@@ -101,8 +101,12 @@ public class MovimientoJugador : MonoBehaviour
                 Debug.Log("salto desde el suelo");
                 DoJump();
             }
-            else if (!isGrounded && PlayerAbilities.instance.unlockedDoubleJump && extraJumps > 0)
+            else if (!isGrounded && PlayerAbilities.instance != null && PlayerAbilities.instance.unlockedDoubleJump && extraJumps > 0)
             {
+                // Comprobar que el jugador tiene desbloqueado el doble salto en el GameManager
+                var gm = GameManager.instance;
+                if (gm != null && !gm.canDoubleJump) return;
+
                 Debug.Log("salto desde el aire");
                 extraJumps--;
                 DoJump();

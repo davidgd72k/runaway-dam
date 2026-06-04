@@ -50,6 +50,7 @@ public class ColisionJugador : MonoBehaviour
         if (other.CompareTag("collectable"))
         {
             Debug.Log("MONEDA");
+            // Increment coins; GameManager.Update asigna score = coins
             GameManager.instance.coins++;
             Destroy(other.gameObject);
         }

@@ -37,9 +37,11 @@ public class Skill : MonoBehaviour
             skillName.SetText($"{nameText} ({level}/{cap})");
         }
 
+        // Mostrar descripci�n y coste junto a los puntos disponibles
+        var cost = (tree.baseSkillCosts != null && skillID >= 0 && skillID < tree.baseSkillCosts.Length) ? tree.baseSkillCosts[skillID] : 0;
         if (skillDescription != null)
         {
-            skillDescription.SetText(descText + $"\n\nSkill Points: {tree.SkillPoints}");
+            skillDescription.SetText(descText + $"\n\nCoste: {cost}");
         }
 
         var img = GetComponent<Image>();
@@ -67,11 +69,46 @@ public class Skill : MonoBehaviour
     {
         var tree = skiltree.instance;
         if (tree == null) return;
-        if (tree.SkillPoints < 1 || tree.skilllevel[skillID] >= tree.skillcap[skillID]) return;
+        // Comprobaciones de seguridad
+        if (skillID < 0) return;
+        var cap = (tree.skillcap != null && skillID < tree.skillcap.Length) ? tree.skillcap[skillID] : 0;
+        var level = (tree.skilllevel != null && skillID < tree.skilllevel.Length) ? tree.skilllevel[skillID] : 0;
+        var cost = (tree.baseSkillCosts != null && skillID < tree.baseSkillCosts.Length) ? tree.baseSkillCosts[skillID] : 0;
 
-        // Consumir punto y aumentar nivel
-        tree.SkillPoints -= 1;
+        // Disponibilidad total mostrada en UI: SkillPoints guardados + score actual (coins)
+        int availableFromSaved = (int)System.Math.Floor(tree.SkillPoints);
+        int availableFromRun = 0;
+        var gm = GameManager.instance;
+        if (gm != null) availableFromRun = gm.coins;
+
+        var totalAvailable = availableFromSaved + availableFromRun;
+
+        if (totalAvailable < cost || level >= cap) return;
+
+        // Consumir primero de SkillPoints guardados, luego del run (coins)
+        int remaining = cost;
+        if (availableFromSaved > 0)
+        {
+            var useSaved = System.Math.Min(availableFromSaved, remaining);
+            tree.SkillPoints -= useSaved;
+            remaining -= useSaved;
+        }
+
+        if (remaining > 0 && gm != null)
+        {
+            // Restar de las monedas del juego
+            var takeFromCoins = System.Math.Min(gm.coins, remaining);
+            gm.coins -= takeFromCoins;
+            // Asegurar que score refleje coins (GameManager.Update normalmente lo hace)
+            gm.score = gm.coins;
+            remaining -= takeFromCoins;
+        }
+
+        // remaining debe ser 0 aquí
         tree.skilllevel[skillID]++;
+
+        // Persistir SkillPoints actualizados
+        PlayerPrefs.SetFloat("SkillPoints", (float)tree.SkillPoints);
 
         // Guardar el nuevo nivel
         PlayerPrefs.SetInt($"skilllevel_{skillID}", tree.skilllevel[skillID]);
@@ -91,6 +128,12 @@ public class Skill : MonoBehaviour
 
         // Actualiza la UI de todo el árbol
         tree.updateallskillui();
+        // Forzar sincronización inmediata con GameManager si existe
+        if (gm != null)
+        {
+            Debug.Log($"[Skill] Bought skill {skillID}. shieldCooldownUpgrades now={tree.shieldCooldownUpgrades}");
+            gm.RefreshSkillDerivedStats();
+        }
     }
     
 }

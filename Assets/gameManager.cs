@@ -1,6 +1,7 @@
 using NUnit.Framework.Interfaces;
 using System.Collections;
 using TMPro;
+using UnityEngine.UI;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -44,8 +45,18 @@ public class GameManager : MonoBehaviour
     public float gameplayVelocity = 5f;
     public float velocityMultiplier = 1f;
 
-    public float dashingTime = 5f;
-    public float cooldownTime = 5f;
+    public float dashingTime = 2f;
+    public float cooldownTime = 10f;
+    public float mejorascd = 0f;
+
+    [Header("UI References")]
+    // Asignar en el Inspector: GameObject que contiene un componente Button
+    public GameObject botonMejora;
+    private Button botonMejoraButton;
+
+    // Contador sencillo de mejoras controlado por el botón (0..5)
+    [Header("Simple Upgrades")]
+    public int mejorascdCount = 0;
 
     public int extraLife = 2;
     private int currentLife = 1;
@@ -83,6 +94,31 @@ public class GameManager : MonoBehaviour
         }
 
         spriteRender = playerCharacter.GetComponent<SpriteRenderer>();
+
+        // Suscribirse a cambios en el skill tree para sincronizar variables derivadas.
+        // Usar el accessor Instance para forzar creación/búsqueda si no existe aún.
+        var tree = skiltree.instance ?? (skiltree.Instance);
+        if (tree != null)
+        {
+            // Registrar listener
+            tree.onDerivedStatsChanged.AddListener(ApplySkillDerivedStats);
+            // Sincronizar inicialmente
+            ApplySkillDerivedStats();
+            // Marcar que ya nos hemos suscrito para evitar suscripciones duplicadas
+            subscribedToSkiltree = true;
+        }
+
+        // Configurar listener del boton de mejora si se ha asignado en el Inspector
+        if (botonMejora != null)
+        {
+            botonMejoraButton = botonMejora.GetComponent<Button>();
+            if (botonMejoraButton != null)
+            {
+                // Asegurar suscripción única: remover antes de añadir
+                botonMejoraButton.onClick.RemoveListener(OnBotonMejoraPressed);
+                botonMejoraButton.onClick.AddListener(OnBotonMejoraPressed);
+            }
+        }
     }
 
     public void Update()
@@ -90,9 +126,11 @@ public class GameManager : MonoBehaviour
         // Mientras el juego esté activo, el score aumenta con el tiempo.
         if (isPlaying && currentLife > 0)
         {
-            score += gameplayVelocity * velocityMultiplier * Time.deltaTime;
+            // El score ahora representa la cantidad de monedas recogidas.
+            // Asignar el score al número de monedas para mantener consistencia.
+            score = coins;
 
-            if (Input.GetKeyDown(KeyCode.LeftControl) && (invencible == false) && currentDashState == DashState.Available)
+            if (Input.GetKeyDown(KeyCode.LeftControl) && (invencible == false) && currentDashState == DashState.Available && canUseShield)
             {
                 currentDashState = DashState.Using;
             }
@@ -106,6 +144,70 @@ public class GameManager : MonoBehaviour
 
         
     }
+    // Intento de suscripción perezosa: si no hay instancia de skiltree al Start, suscribirse cuando aparezca
+    private bool subscribedToSkiltree = false;
+    private void LateUpdate()
+    {
+        if (!subscribedToSkiltree)
+        {
+            var tree = skiltree.instance ?? (skiltree.Instance);
+            if (tree != null)
+            {
+                tree.onDerivedStatsChanged.AddListener(ApplySkillDerivedStats);
+                ApplySkillDerivedStats();
+                subscribedToSkiltree = true;
+            }
+        }
+    }
+    // Lee skiltree y aplica las variables derivadas al GameManager
+    private void ApplySkillDerivedStats()
+    {
+        var tree = skiltree.instance;
+        if (tree == null) return;
+
+        Debug.Log($"[GameManager] ApplySkillDerivedStats called: shieldCooldownUpgrades={tree.shieldCooldownUpgrades}");
+
+        // Simplemente leer los valores ya calculados en skiltree
+        canUseShield = tree.shieldUnlocked;
+        canDoubleJump = tree.doubleJumpUnlocked;
+
+        // Copiar contadores de mejoras al GameManager
+        extraLife = tree.extraLifeUpgrades;
+
+        // Calcular reducción total del cooldown a partir de las mejoras
+        var reduction = (float)tree.shieldCooldownUpgrades * cooldownReductionPerUpgrade;
+        // Almacenar reducción para uso informativo (segundos reducidos)
+        mejorascd = Mathf.Clamp(reduction, 0f, cooldownTime - 0.1f);
+        // Calcular tiempo efectivo de espera entre dashes: cooldownTime - reduction
+        shieldCooldownWait = Mathf.Max(0.1f, cooldownTime - mejorascd);
+    }
+
+    // Método público para forzar la sincronización desde otros scripts
+    public void RefreshSkillDerivedStats()
+    {
+        ApplySkillDerivedStats();
+    }
+
+    private void OnDestroy()
+    {
+        var tree = skiltree.instance;
+        if (tree != null)
+        {
+            tree.onDerivedStatsChanged.RemoveListener(ApplySkillDerivedStats);
+        }
+
+        if (botonMejoraButton != null)
+        {
+            botonMejoraButton.onClick.RemoveListener(OnBotonMejoraPressed);
+        }
+    }
+
+    // Handler del boton: incrementa un int simple hasta 5 (sin dependencias)
+    private void OnBotonMejoraPressed()
+    {
+        mejorascd += 5;
+        Debug.Log($"[GameManager] BotonMejora pressed: mejorascdCount={mejorascdCount}");
+    }
 
     // Evento que se dispara al empezar a jugar
     public UnityEvent onPlay = new UnityEvent();
@@ -117,6 +219,7 @@ public class GameManager : MonoBehaviour
 
         // Reiniciamos score
         score = 0;
+        coins = 0;
         currentLife = BASE_LIFE + extraLife;
 
         // Activamos estado de juego
@@ -166,13 +269,13 @@ public class GameManager : MonoBehaviour
 
     IEnumerator EnableDashing()
     {
-        Debug.Log("Dasheando.");
+        Debug.Log("escudo.");
         currentDashState = DashState.Using;
         spriteRender.color = Color.yellow;
         invencible = true;
         // TODO: que el tiempo sea en una variable.
         yield return new WaitForSeconds(dashingTime);
-        Debug.Log("Se acaba el dashing");
+        Debug.Log("Se acaba el escudo");
         spriteRender.color = Color.gray;
         currentDashState = DashState.Waiting;
         invencible = false;
@@ -180,12 +283,12 @@ public class GameManager : MonoBehaviour
 
     IEnumerator CooldownDashing()
     {
-        //Debug.Log("Cooldown dashing.");
-
-        // TODO: que el tiempo sea en una variable.
-        var cooldownMult = PlayerAbilities.instance.improveCooldownDash;
-        yield return new WaitForSeconds(cooldownTime * cooldownMult);
-        //Debug.Log("Dash recuperado");
+        Debug.Log("Cooldown dashing.");
+        // Ajustar con el valor bruto de mejoras desde skiltree si está disponible
+        var tree = skiltree.instance;
+        var waitTime = Mathf.Max(0.1f, shieldCooldownWait - mejorascd);
+        yield return new WaitForSeconds(waitTime);
+        Debug.Log("Dash recuperado");
         spriteRender.color = Color.white;
         currentDashState = DashState.Available;
     }
@@ -207,4 +310,12 @@ public class GameManager : MonoBehaviour
                 break;
         }
     }
+
+    // Permisos/estados derivados del skill tree
+    public bool canUseShield = false;
+    public bool canDoubleJump = false;
+
+    public float cooldownReductionPerUpgrade = 1f;
+    // Tiempo efectivo de espera entre escudos después de aplicar mejoras
+    private float shieldCooldownWait = 1f;
 }

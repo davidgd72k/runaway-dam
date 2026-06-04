@@ -35,12 +35,10 @@ public class UIManager : MonoBehaviour
     /// <summary>
     /// Texto que muestra la puntuación final en Game Over
     /// </summary>
-    [SerializeField] TextMeshProUGUI gameOverScoreUI;
 
     /// <summary>
     /// Texto que muestra el record guardado
     /// </summary>
-    [SerializeField] TextMeshProUGUI gameOverHighscoreUI;
 
     private StringBuilder sbScore;
     private StringBuilder sbLife;
@@ -80,7 +78,7 @@ public class UIManager : MonoBehaviour
         // Evito llenar la memoria de strings únicos.
         // String con los puntos actuales del jugador.
         sbScore.Clear();
-        sbScore.Append(string.Format("{0}m", ScoreUtils.RoundScoreToInt(gm.score) ?? "0"));
+        sbScore.Append(string.Format("{0}", ScoreUtils.RoundScoreToInt(gm.score) ?? "0"));
 
         // String con la vida actual del jugador.
         sbLife.Clear();
@@ -90,7 +88,11 @@ public class UIManager : MonoBehaviour
         sbSpeed.Append(string.Format("x{0}", Convert.ToString(GameManager.instance.velocityMultiplier) ?? "???"));
 
         sbSkillPoints.Clear();
-        sbSkillPoints.Append(string.Format("Skill points: {0}", skiltree.instance.SkillPoints.ToString()));
+        // Mostrar skill points como los puntos previos + el score actual
+        double baseSP = skiltree.instance != null ? skiltree.instance.SkillPoints : 0.0;
+        double scoreValue = gm != null ? gm.score : 0.0;
+        var totalSP = (int)Math.Floor(baseSP + scoreValue);
+        sbSkillPoints.Append(string.Format("Skill points: {0}", totalSP));
 
         // Actualizo los textos por pantalla.
         scoreText.text = sbScore.ToString();
@@ -111,12 +113,6 @@ public class UIManager : MonoBehaviour
     private void UIGameOver()
     {
         if (gameOverUI != null) gameOverUI.SetActive(true);
-
-        if (gameOverScoreUI != null)
-            gameOverScoreUI.text = "Puntos: " + ScoreUtils.RoundScoreToInt(gm.score);
-
-        if (gameOverHighscoreUI != null)
-            gameOverHighscoreUI.text = "Record: " + ScoreUtils.RoundScoreToInt(gm.data.highScore);
     }
 
     /// <summary>

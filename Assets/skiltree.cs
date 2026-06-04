@@ -1,7 +1,11 @@
+// Para pruebas: descomenta la siguiente línea para forzar que SkillPoints y niveles se pongan a 0
+//#define FORCE_RESET_SKILLPOINTS_ON_START
+
 using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class skiltree : MonoBehaviour
 {
@@ -54,6 +58,16 @@ public class skiltree : MonoBehaviour
     // Textos base inmutables usados para componer la UI sin duplicar
     public string[] baseSkillNames;
     public string[] baseSkillDescriptions;
+    // Coste por skill (editable en inspector). Si no se especifica, se rellenan valores por defecto en Initialize().
+    public int[] baseSkillCosts;
+
+    [Header("Derived State")]
+    public bool shieldUnlocked = false;
+    public bool doubleJumpUnlocked = false;
+    public int shieldCooldownUpgrades = 0;
+    public int extraLifeUpgrades = 0;
+    // Evento que se dispara cuando cambian los valores derivados
+    public UnityEvent onDerivedStatsChanged = new UnityEvent();
 
     [Header("Runtime References")]
     public List<Skill> skillList;
@@ -88,8 +102,23 @@ public class skiltree : MonoBehaviour
         if (connectotrlist == null) connectotrlist = new List<GameObject>();
 
         // Valores por defecto para límites y niveles (se ajustarán según el número de skills)
-        skillcap = new[] { 1, 5, 5, 5 };
-        skilllevel = new[] { 0, 0, 0, 0 };
+        skillcap = new[] { 1, 5, 1, 1, 5, 5 };
+        skilllevel = new[] { 0, 0, 0, 0, 0,0};
+
+        // fuerza el reset de SkillPoints y niveles guardados.
+        // Descomenta la directiva en linea 2 del codigo para activarlo.
+#if FORCE_RESET_SKILLPOINTS_ON_START
+        // Limpiar SkillPoints en PlayerPrefs y variable en memoria
+        PlayerPrefs.SetFloat("SkillPoints", 0f);
+        SkillPoints = 0.0;
+
+        // Limpiar todos los skilllevel guardados (si existen)
+        for (int r = 0; r < skilllevel.Length; r++)
+        {
+            PlayerPrefs.SetInt($"skilllevel_{r}", 0);
+        }
+        PlayerPrefs.Save();
+#endif
 
         // Recoger también objetos inactivos para que la lista se pueble aunque la UI esté oculta
         if (skillholder != null)
@@ -139,15 +168,18 @@ public class skiltree : MonoBehaviour
             }
 
             // Defaults para nombres/descr (solo usados si no hay texto disponible en TMP o Skill)
-            var defaultNames = new[] { "Raíz1", "Velocidad2", "Escudo3", "Doble salto4", "Sprint5" };
+            var defaultNames = new[] { "Raíz", "vidas", "Escudo", "Doble salto", "cooldown", "mas vidas" };
             var defaultDescriptions = new[]
             {
-                "Desbloquea las habilidades 1",
-                "Aumenta la velocidad de movimiento 2",
-                "Desbloquea escudo 3",
-                "Desbloquea doble salto 4",
-                "descloquea sprint 5"
+                "Desbloquea las habilidades",
+                "Aumenta la cantidad de vidas",
+                "Desbloquea escudo",
+                "Desbloquea doble salto ",
+                "mejorar cooldown escudo",
+                "Aumenta aún más la cantidad de vidas"
             };
+            // Costes por defecto (puedes cambiarlos aquí)
+            var defaultCosts = new[] { 0, 3, 10, 10, 5, 5 };
 
             // Aplicar textos por defecto a los TMP_Text (solo si el TMP existe)
             for (int i = 0; i < count; i++)
@@ -213,6 +245,17 @@ public class skiltree : MonoBehaviour
 
                 baseSkillDescriptions[i] = descBase?.TrimEnd() ?? string.Empty;
             }
+
+            // Aplicar forzadamente los valores por defecto desde código (ignorando valores del Inspector)
+            for (int i = 0; i < count; i++)
+            {
+                if (i < defaultNames.Length) baseSkillNames[i] = defaultNames[i];
+                if (i < defaultDescriptions.Length) baseSkillDescriptions[i] = defaultDescriptions[i];
+            }
+
+            // Inicializar/forzar los costes por defecto desde código
+            baseSkillCosts = new int[count];
+            for (int i = 0; i < count; i++) baseSkillCosts[i] = i < defaultCosts.Length ? defaultCosts[i] : 0;
         }
         else
         {
@@ -251,6 +294,12 @@ public class skiltree : MonoBehaviour
                 skilllevel[i] = PlayerPrefs.GetInt(key);
             else
                 skilllevel[i] = 0;
+        }
+
+        // Cargar SkillPoints guardados
+        if (PlayerPrefs.HasKey("SkillPoints"))
+        {
+            SkillPoints = PlayerPrefs.GetFloat("SkillPoints");
         }
 
         // Asigna skillID a cada Skill encontrado para evitar valores residuales en el Inspector
@@ -296,5 +345,38 @@ public class skiltree : MonoBehaviour
     public void updateallskillui()
     {
         foreach (var skill in skillList) {skill.UpdateUI();}
+        // Actualizar estados derivados después de refrescar la UI
+        RefreshDerivedStats();
+    }
+
+    // Calcula valores derivados (si el escudo o doble salto están desbloqueados, y contadores de mejoras)
+    public void RefreshDerivedStats()
+    {
+        // Seguridad
+        if (skilllevel == null) return;
+
+        // Guardar valores previos para detectar cambios
+        var prevShield = shieldUnlocked;
+        var prevDoubleJump = doubleJumpUnlocked;
+        var prevShieldCooldownUpgrades = shieldCooldownUpgrades;
+        var prevExtraLifeUpgrades = extraLifeUpgrades;
+
+        // Por convención: asumimos skill indices conocidos:
+        // 2 => Escudo, 3 => Doble salto, 4 => Cooldown escudo, 1/5 => vidas (según orden definido)
+        shieldUnlocked = (skilllevel.Length > 2 && skilllevel[2] > 0);
+        doubleJumpUnlocked = (skilllevel.Length > 3 && skilllevel[3] > 0);
+
+        shieldCooldownUpgrades = (skilllevel.Length > 4) ? skilllevel[4] : 0;
+        // Extra life upgrades: se obtienen de dos mejoras (índices 1 y 5). Sumarlas si existen.
+        var lifeFromIndex1 = (skilllevel.Length > 1) ? skilllevel[1] : 0;
+        var lifeFromIndex5 = (skilllevel.Length > 5) ? skilllevel[5] : 0;
+        extraLifeUpgrades = lifeFromIndex1 + lifeFromIndex5;
+
+        // Si algún valor cambió, disparar evento
+        if (prevShield != shieldUnlocked || prevDoubleJump != doubleJumpUnlocked || prevShieldCooldownUpgrades != shieldCooldownUpgrades || prevExtraLifeUpgrades != extraLifeUpgrades)
+        {
+            Debug.Log($"[skiltree] Derived changed: shieldUnlocked={shieldUnlocked}, shieldCooldownUpgrades={shieldCooldownUpgrades}, extraLifeUpgrades={extraLifeUpgrades}");
+            onDerivedStatsChanged?.Invoke();
+        }
     }
 }

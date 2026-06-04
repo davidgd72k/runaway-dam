@@ -37,5 +37,21 @@ public class ColisionJugador : MonoBehaviour
             }
 
         }
+
+        //if (collision.transform.CompareTag("collectable"))
+        //{
+            
+        //    Destroy(collision.gameObject);
+        //}
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("collectable"))
+        {
+            Debug.Log("MONEDA");
+            GameManager.instance.coins++;
+            Destroy(other.gameObject);
+        }
     }
 }

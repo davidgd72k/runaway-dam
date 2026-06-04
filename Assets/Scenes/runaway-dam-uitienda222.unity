@@ -725,6 +725,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   playerCharacter: {fileID: 1858969860}
   score: 0
+  coins: 0
   gameplayVelocity: 5
   velocityMultiplier: 1
   dashingTime: 5
@@ -5075,6 +5076,8 @@ MonoBehaviour:
   maxSpawnTime: 3
   minY: -2
   maxY: 2
+  minSpeed: 2
+  maxSpeed: 10
 --- !u!4 &1027390461
 Transform:
   m_ObjectHideFlags: 0

@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour
 
     // Score actual de la partida
     public float score = 0f;
+    public int coins = 0;
 
     public float gameplayVelocity = 5f;
     public float velocityMultiplier = 1f;

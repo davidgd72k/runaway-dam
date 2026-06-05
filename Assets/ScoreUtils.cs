@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SocialPlatforms.Impl;
 
 /// <summary>
 /// Utilidades relacionadas con el manejo de los puntos del juego.

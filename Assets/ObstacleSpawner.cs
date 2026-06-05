@@ -1,6 +1,4 @@
-using System.IO.IsolatedStorage;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 using static obstacleName;
 
 public class ObstacleSpawner : MonoBehaviour

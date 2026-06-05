@@ -1,6 +1,4 @@
-using Mono.Data.Sqlite;
 using System.Data;
-using System;
 using UnityEngine;
 
 public class simpleDB : MonoBehaviour

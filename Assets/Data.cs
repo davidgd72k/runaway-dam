@@ -1,4 +1,3 @@
-using UnityEngine;
 
 [System.Serializable] // Permite guardar esta clase en JSON o archivos
 public class Data

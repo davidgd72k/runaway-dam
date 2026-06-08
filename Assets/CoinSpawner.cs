@@ -13,16 +13,23 @@ public class CoinSpawner : MonoBehaviour
     [SerializeField] private float minSpeed = 10f;
     [SerializeField] private float maxSpeed = 30f;
 
+    private bool isStartedInvoke = false;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        // Empieza invocando una moneda.
-        Invoke(nameof(SpawnCoin), Random.Range(minSpawnTime, maxSpawnTime));
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (GameManager.instance.isPlaying && !isStartedInvoke)
+        {
+            // Empieza invocando una moneda.
+            Invoke(nameof(SpawnCoin), Random.Range(minSpawnTime, maxSpawnTime));
+            isStartedInvoke = true;
+        }
 
     }
 

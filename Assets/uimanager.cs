@@ -8,17 +8,17 @@ public class UIManager : MonoBehaviour
     /// <summary>
     /// Texto que muestra los puntos durante la partida
     /// </summary>
-    [SerializeField] private TextMeshProUGUI scoreText;
-    
+    private TextMeshProUGUI scoreText;
+
     /// <summary>
     /// Texto que muestra las vidas actual del jugador.
     /// </summary>
-    [SerializeField] private TextMeshProUGUI lifeText;
+    private TextMeshProUGUI lifeText;
 
     /// <summary>
     /// Texto que contiene la velocidad actual de la partida.
     /// </summary>
-    [SerializeField] private TextMeshProUGUI speedText;
+    private TextMeshProUGUI speedText;
 
     [SerializeField] private TextMeshProUGUI skillShopText;
 
@@ -31,6 +31,11 @@ public class UIManager : MonoBehaviour
     /// UI que se muestra cuando el jugador pierde (Game Over)
     /// </summary>
     [SerializeField] private GameObject gameOverUI;
+
+    /// <summary>
+    /// UI que se muestra durante la partida.
+    /// </summary>
+    [SerializeField] private GameObject gameplayUI;
 
     /// <summary>
     /// Texto que muestra la puntuación final en Game Over
@@ -63,14 +68,31 @@ public class UIManager : MonoBehaviour
         // primero usando el singleton, y si no existe, lo busca en la escena
         gm = GameManager.instance ?? FindAnyObjectByType<GameManager>();
 
-        // Si el texto de score no est� asignado en el inspector,
-        // intenta encontrar uno autom�ticamente en la escena
-        scoreText = scoreText ?? FindAnyObjectByType<TextMeshProUGUI>();
-        lifeText = lifeText ?? FindAnyObjectByType<TextMeshProUGUI>();
-        skillShopText = skillShopText ?? FindAnyObjectByType<TextMeshProUGUI>();
+        Transform textPuntosChild = gameplayUI.transform.Find("ScoreRect/TextPuntos");
+
+        if (textPuntosChild != null)
+        {
+            GameObject obj = textPuntosChild.gameObject;
+            obj.GetComponent<TextMeshProUGUI>().text = sbScore.ToString();
+            //scoreText = gameplayUI.GetComponent < ScoreRect > ?? FindAnyObjectByType<TextMeshProUGUI>();
+            //lifeText = lifeText ?? FindAnyObjectByType<TextMeshProUGUI>();
+            //skillShopText = skillShopText ?? FindAnyObjectByType<TextMeshProUGUI>();
+        }
+
 
         // Nos suscribimos al evento de Game Over para actualizar la UI
         gm.onGameOver.AddListener(UIGameOver);
+        gm.onPlay.AddListener(UIGameplay);
+    }
+
+    private static void SetTextMeshProText(GameObject node, string pathToTextMeshPro, StringBuilder sb) 
+    {
+        Transform child = node.transform.Find(pathToTextMeshPro);
+
+        if (child != null)
+        {
+            child.gameObject.GetComponent<TextMeshProUGUI>().text = sb.ToString();
+        }
     }
 
     private void Update()
@@ -95,9 +117,12 @@ public class UIManager : MonoBehaviour
         sbSkillPoints.Append(string.Format("Skill points: {0}", totalSP));
 
         // Actualizo los textos por pantalla.
-        scoreText.text = sbScore.ToString();
-        lifeText.text = sbLife.ToString();
-        speedText.text = sbSpeed.ToString();
+        //scoreText.text = sbScore.ToString();
+        SetTextMeshProText(gameplayUI, "ScoreRect/TextPuntos", sbScore);
+        //lifeText.text = sbLife.ToString();
+        SetTextMeshProText(gameplayUI, "VidasRect/TextVidas", sbLife);
+        //speedText.text = sbSpeed.ToString();
+        SetTextMeshProText(gameplayUI, "VelRect/TextVelocidad", sbSpeed);
         skillShopText.text = sbSkillPoints.ToString();
     }
 
@@ -113,6 +138,13 @@ public class UIManager : MonoBehaviour
     private void UIGameOver()
     {
         if (gameOverUI != null) gameOverUI.SetActive(true);
+        if (gameplayUI != null) gameplayUI.SetActive(false);
+    }
+
+    private void UIGameplay()
+    {
+        if (gameOverUI != null) gameOverUI.SetActive(false);
+        if (gameplayUI != null) gameplayUI.SetActive(true);
     }
 
     /// <summary>
@@ -183,5 +215,6 @@ public class UIManager : MonoBehaviour
         }
 
         if (gameOverUI != null) gameOverUI.SetActive(false);
+        if (gameplayUI != null) gameplayUI.SetActive(false);
     }
 }

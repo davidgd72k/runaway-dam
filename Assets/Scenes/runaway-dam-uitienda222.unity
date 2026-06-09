@@ -3836,12 +3836,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33d136a9c3af6144a8e878e0773ec391, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  scoreText: {fileID: 2074766425}
-  lifeText: {fileID: 281007991}
-  speedText: {fileID: 1815159234}
   skillShopText: {fileID: 1011253733}
   startmenuUI: {fileID: 1858121878}
   gameOverUI: {fileID: 1475309360}
+  gameplayUI: {fileID: 519618699}
   shopUI: {fileID: 293787202}
 --- !u!114 &813920525
 MonoBehaviour:
